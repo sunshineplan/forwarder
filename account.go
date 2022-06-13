@@ -76,7 +76,7 @@ func (a account) start() (res result, err error) {
 	if err != nil {
 		return
 	}
-	defer client.Close()
+	defer client.Quit()
 
 	f := &forwarder{client, nil}
 	if err = f.auth(a.domain(), a.Username, password); err != nil {
