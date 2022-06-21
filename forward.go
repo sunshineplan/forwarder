@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-ntlmssp"
+	"github.com/sunshineplan/utils/mail"
 	"github.com/sunshineplan/utils/pop3"
 )
 
@@ -30,7 +31,7 @@ func ntlmAuth(client *pop3.Client, domain, username, password string) (err error
 	if err != nil {
 		return
 	}
-	b, err = ntlmssp.ProcessChallenge(b, username, password)
+	b, err = ntlmssp.ProcessChallenge(b, username, password, false)
 	if err != nil {
 		return
 	}
@@ -52,7 +53,7 @@ func (f *forwarder) auth(domain, username, password string) error {
 	return f.authFunc(f.Client, domain, username, password)
 }
 
-func (f *forwarder) forward(id int, to []string, delete bool) error {
+func (f *forwarder) forward(sender *mail.Dialer, id int, to []string, delete bool) error {
 	s, err := f.Retr(id)
 	if err != nil {
 		return err
@@ -61,7 +62,7 @@ func (f *forwarder) forward(id int, to []string, delete bool) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
-	if err := dialer.SendMail(ctx, dialer.Account, to, []byte(s)); err != nil {
+	if err := sender.SendMail(ctx, sender.Account, to, []byte(s)); err != nil {
 		return err
 	}
 
@@ -78,7 +79,7 @@ type result struct {
 	failure int
 }
 
-func (f *forwarder) run(current int, to []string, delete bool) (res result, err error) {
+func (f *forwarder) run(sender *mail.Dialer, current int, to []string, delete bool) (res result, err error) {
 	msgs, err := f.Uidl(0)
 	if err != nil {
 		return
@@ -96,7 +97,7 @@ func (f *forwarder) run(current int, to []string, delete bool) (res result, err 
 			continue
 		}
 
-		if forwardErr := f.forward(msg.ID, to, delete); forwardErr != nil {
+		if forwardErr := f.forward(sender, msg.ID, to, delete); forwardErr != nil {
 			failure++
 			log.Print(forwardErr)
 		} else {

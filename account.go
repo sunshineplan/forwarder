@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/mail"
+	m "net/mail"
 	"sync"
 	"time"
 
 	"github.com/sunshineplan/cipher"
+	"github.com/sunshineplan/utils/mail"
 	"github.com/sunshineplan/utils/pop3"
 	"golang.org/x/net/publicsuffix"
 )
@@ -19,6 +20,8 @@ type account struct {
 	IsTLS    bool `json:"tls"`
 	Username string
 	Password string
+
+	Sender *mail.Dialer
 
 	To []string
 
@@ -37,7 +40,7 @@ func (a account) domain() string {
 }
 
 func (a account) address() string {
-	if addr, err := mail.ParseAddress(a.Username); err == nil {
+	if addr, err := m.ParseAddress(a.Username); err == nil {
 		return addr.Address
 	} else {
 		return fmt.Sprintf("%s@%s", a.Username, a.domain())
@@ -91,7 +94,14 @@ func (a account) start() (res result, err error) {
 	current := currentMap[a.address()]
 	currentMutex.Unlock()
 
-	return f.run(current, a.To, !a.Keep)
+	if a.Sender == nil {
+		a.Sender = dialer
+	}
+	if a.Sender.Port == 0 {
+		a.Sender.Port = 587
+	}
+
+	return f.run(a.Sender, current, a.To, !a.Keep)
 }
 
 func (a account) run(cancel <-chan struct{}) {
