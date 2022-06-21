@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/mail"
+	"sync"
 	"time"
 
 	"github.com/sunshineplan/cipher"
@@ -21,6 +23,8 @@ type account struct {
 	To []string
 
 	Keep bool
+
+	Refresh string
 }
 
 func (a account) domain() string {
@@ -88,4 +92,44 @@ func (a account) start() (res result, err error) {
 	currentMutex.Unlock()
 
 	return f.run(current, a.To, !a.Keep)
+}
+
+func (a account) run(cancel <-chan struct{}) {
+	refresh, err := time.ParseDuration(a.Refresh)
+	if a.Refresh != "" && err != nil {
+		log.Printf("%s - [ERROR]: %s", a.address(), err)
+	}
+	if refresh == 0 {
+		refresh = *interval
+	}
+
+	t := time.NewTicker(refresh)
+	defer t.Stop()
+
+	var locker sync.Mutex
+	for {
+		select {
+		case <-t.C:
+			if !locker.TryLock() {
+				log.Printf("%s - [WARN]: Previous operation has not finished.", a.address())
+				break
+			}
+
+			if res, err := a.start(); err != nil {
+				log.Printf("%s - [ERROR]: %s", a.address(), err)
+			} else {
+				if res.success+res.failure > 0 {
+					log.Printf("%s - success: %d, failure: %d", a.address(), res.success, res.failure)
+					if res.last != 0 {
+						saveCurrentMap(a.address(), res.last)
+					}
+				}
+			}
+
+			locker.Unlock()
+
+		case <-cancel:
+			return
+		}
+	}
 }

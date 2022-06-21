@@ -14,12 +14,16 @@ import (
 	"github.com/sunshineplan/utils/watcher"
 )
 
+const defaultInterval = 5 * time.Minute
+
 var (
 	accountList  []account
 	accountMutex sync.Mutex
 
 	currentMap   = make(map[string]int)
 	currentMutex sync.Mutex
+
+	accountWathcer *watcher.Watcher
 )
 
 func loadAccountList() error {
@@ -32,24 +36,6 @@ func loadAccountList() error {
 	defer accountMutex.Unlock()
 
 	return json.Unmarshal(b, &accountList)
-}
-
-func initAccountList() {
-	if err := loadAccountList(); err != nil {
-		log.Fatalln("failed to init account list:", err)
-	}
-
-	w := watcher.New(*accounts, time.Second)
-	go func() {
-		for {
-			<-w.C
-
-			if err := loadAccountList(); err != nil {
-				log.Println("failed to load account list:", err)
-				return
-			}
-		}
-	}()
 }
 
 func loadCurrentMap() error {
@@ -82,7 +68,12 @@ func loadCurrentMap() error {
 	return nil
 }
 
-func saveCurrentMap() {
+func saveCurrentMap(address string, last int) {
+	currentMutex.Lock()
+	defer currentMutex.Unlock()
+
+	currentMap[address] = last
+
 	accountMutex.Lock()
 	defer accountMutex.Unlock()
 

@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/sunshineplan/utils/mail"
-	"github.com/sunshineplan/utils/workers"
+	"github.com/sunshineplan/utils/watcher"
 )
 
 func run() {
@@ -19,42 +18,31 @@ func run() {
 		log.SetOutput(f)
 	}
 
-	initAccountList()
+	if err := loadAccountList(); err != nil {
+		log.Fatalln("failed to init account list:", err)
+	}
+	accountWathcer = watcher.New(*accounts, time.Second)
+
 	if err := loadCurrentMap(); err != nil {
 		log.Print(err)
 	}
 
-	var locker sync.Mutex
 	for {
-		<-time.After(time.Duration(*interval) * time.Minute)
-
-		if !locker.TryLock() {
-			log.Print("Previous operation has not finished.")
-			continue
-		}
+		c := make(chan struct{})
 
 		accountMutex.Lock()
-		list := make([]account, len(accountList))
-		copy(list, accountList)
+		for _, i := range accountList {
+			go i.run(c)
+		}
 		accountMutex.Unlock()
 
-		workers.Slice(list, func(_ int, account account) {
-			if res, err := account.start(); err != nil {
-				log.Print(err)
-			} else {
-				if res.success+res.failure > 0 {
-					log.Printf("%s - success: %d, failure: %d", account.address(), res.success, res.failure)
-					if res.last != 0 {
-						currentMutex.Lock()
-						currentMap[account.address()] = res.last
-						currentMutex.Unlock()
-					}
-				}
+		select {
+		case <-accountWathcer.C:
+			close(c)
+			if err := loadAccountList(); err != nil {
+				log.Println("failed to load account list:", err)
 			}
-		})
-		saveCurrentMap()
-
-		locker.Unlock()
+		}
 	}
 }
 

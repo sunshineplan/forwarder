@@ -27,8 +27,8 @@ var (
 	accounts = flag.String("accounts", "", "Path to account list file")
 	current  = flag.String("current", "", "Path to current map file")
 	key      = flag.String("key", "forwarder", "Encrypt key")
-	interval = flag.Int("interval", 5, "Refresh Interval")
-	logPath  = flag.String("log", "", "Log Path")
+	interval = flag.Duration("interval", defaultInterval, "Default refresh interval")
+	logPath  = flag.String("log", "", "Log path")
 )
 
 var dialer = new(mail.Dialer)
