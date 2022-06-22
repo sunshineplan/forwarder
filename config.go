@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/sunshineplan/cipher"
 	"github.com/sunshineplan/utils/txt"
 	"github.com/sunshineplan/utils/watcher"
 )
@@ -17,7 +18,7 @@ import (
 const defaultInterval = 5 * time.Minute
 
 var (
-	accountList  []account
+	accountList  []*account
 	accountMutex sync.Mutex
 
 	currentMap   = make(map[string]int)
@@ -35,7 +36,34 @@ func loadAccountList() error {
 	accountMutex.Lock()
 	defer accountMutex.Unlock()
 
-	return json.Unmarshal(b, &accountList)
+	if err := json.Unmarshal(b, &accountList); err != nil {
+		return err
+	}
+
+	for _, i := range accountList {
+		if i.Port == 0 {
+			if i.IsTLS {
+				i.Port = 995
+			} else {
+				i.Port = 110
+			}
+		}
+
+		if i.Sender != nil {
+			if i.Sender.Port == 0 {
+				i.Sender.Port = 587
+			}
+
+			password, err := cipher.DecryptText(*key, i.Sender.Password)
+			if err != nil {
+				log.Printf("%s - [WARN]Failed to decrypt sender password: %s", i.address(), err)
+			} else {
+				i.Sender.Password = password
+			}
+		}
+	}
+
+	return nil
 }
 
 func loadCurrentMap() error {

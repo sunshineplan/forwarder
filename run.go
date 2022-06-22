@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -8,6 +9,11 @@ import (
 
 	"github.com/sunshineplan/utils/mail"
 	"github.com/sunshineplan/utils/watcher"
+)
+
+var (
+	emptyDialer    mail.Dialer
+	emptyDialerErr = errors.New("empty dialer configuration")
 )
 
 func run() {
@@ -50,12 +56,16 @@ func test() error {
 	if err := loadAccountList(); err != nil {
 		return fmt.Errorf("failed to load account: %s", err)
 	}
-	if err := dialer.Send(&mail.Message{
-		To:      []string{dialer.Account},
-		Subject: "Test Mail",
-		Body:    "Test",
-	}); err != nil {
-		return fmt.Errorf("failed to send test mail: %s", err)
+
+	if *defaultSender != emptyDialer {
+		if err := defaultSender.Send(&mail.Message{
+			To:      []string{defaultSender.Account},
+			Subject: "Test Mail",
+			Body:    "Test",
+		}); err != nil {
+			return fmt.Errorf("failed to send test mail: %s", err)
+		}
 	}
+
 	return nil
 }

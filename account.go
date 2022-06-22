@@ -48,17 +48,9 @@ func (a account) address() string {
 }
 
 func (a account) connect() (*pop3.Client, error) {
-	var dial func(context.Context, string) (*pop3.Client, error)
+	dial := pop3.Dial
 	if a.IsTLS {
-		if a.Port == 0 {
-			a.Port = 995
-		}
 		dial = pop3.DialTLS
-	} else {
-		if a.Port == 0 {
-			a.Port = 110
-		}
-		dial = pop3.Dial
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
@@ -94,13 +86,6 @@ func (a account) start() (res result, err error) {
 	current := currentMap[a.address()]
 	currentMutex.Unlock()
 
-	if a.Sender == nil {
-		a.Sender = dialer
-	}
-	if a.Sender.Port == 0 {
-		a.Sender.Port = 587
-	}
-
 	return f.run(a.Sender, current, a.To, !a.Keep)
 }
 
@@ -121,12 +106,12 @@ func (a account) run(cancel <-chan struct{}) {
 		select {
 		case <-t.C:
 			if !locker.TryLock() {
-				log.Printf("%s - [WARN]: Previous operation has not finished.", a.address())
+				log.Printf("%s - [WARN]Previous operation has not finished.", a.address())
 				break
 			}
 
 			if res, err := a.start(); err != nil {
-				log.Printf("%s - [ERROR]: %s", a.address(), err)
+				log.Printf("%s - [ERROR]%s", a.address(), err)
 			} else {
 				if res.success+res.failure > 0 {
 					log.Printf("%s - success: %d, failure: %d", a.address(), res.success, res.failure)

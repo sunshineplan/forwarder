@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-ntlmssp"
+	"github.com/sunshineplan/utils/executor"
 	"github.com/sunshineplan/utils/mail"
 	"github.com/sunshineplan/utils/pop3"
 )
@@ -54,15 +55,28 @@ func (f *forwarder) auth(domain, username, password string) error {
 }
 
 func (f *forwarder) forward(sender *mail.Dialer, id int, to []string, delete bool) error {
+	if (sender == nil || *sender == emptyDialer) && *defaultSender == emptyDialer {
+		return emptyDialerErr
+	}
+
 	s, err := f.Retr(id)
 	if err != nil {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	defer cancel()
+	if _, err := executor.ExecuteSerial(
+		[]*mail.Dialer{sender, defaultSender},
+		func(d *mail.Dialer) (any, error) {
+			if d == nil || *d == emptyDialer {
+				return nil, executor.SkipErr
+			}
 
-	if err := sender.SendMail(ctx, sender.Account, to, []byte(s)); err != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+			defer cancel()
+
+			return nil, d.SendMail(ctx, sender.Account, to, []byte(s))
+		},
+	); err != nil {
 		return err
 	}
 

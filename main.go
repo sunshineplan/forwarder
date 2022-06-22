@@ -31,7 +31,7 @@ var (
 	logPath  = flag.String("log", "", "Log path")
 )
 
-var dialer = new(mail.Dialer)
+var defaultSender = new(mail.Dialer)
 
 func main() {
 	self, err := os.Executable()
@@ -39,21 +39,25 @@ func main() {
 		log.Fatalln("Failed to get self path:", err)
 	}
 
-	flag.StringVar(&dialer.Server, "server", "", "Mail server address")
-	flag.IntVar(&dialer.Port, "port", 587, "Mail server port")
-	flag.StringVar(&dialer.Account, "account", "", "Mail account name")
-	flag.StringVar(&dialer.Password, "password", "", "Mail account password")
+	flag.StringVar(&defaultSender.Server, "server", "", "Mail server address")
+	flag.IntVar(&defaultSender.Port, "port", 0, "Mail server port")
+	flag.StringVar(&defaultSender.Account, "account", "", "Mail account name")
+	flag.StringVar(&defaultSender.Password, "password", "", "Mail account password")
 	iniflags.SetConfigFile(filepath.Join(filepath.Dir(self), "config.ini"))
 	iniflags.SetAllowMissingConfigFile(true)
 	iniflags.SetAllowUnknownFlags(true)
 	iniflags.Parse()
 
-	if dialer.Password == "" {
-		log.Fatal("Mail account password is empty.")
+	if defaultSender.Password != "" {
+		password, err := cipher.DecryptText(*key, defaultSender.Password)
+		if err != nil {
+			log.Println("Failed to decrypt mail account password:", err)
+		} else {
+			defaultSender.Password = password
+		}
 	}
-	dialer.Password, err = cipher.DecryptText(*key, dialer.Password)
-	if err != nil {
-		log.Fatalf("Failed to decrypt mail account password: %s", err)
+	if *defaultSender != emptyDialer && defaultSender.Port == 0 {
+		defaultSender.Port = 587
 	}
 
 	if *accounts == "" {
