@@ -82,9 +82,10 @@ func (a account) start() (res result, err error) {
 		return
 	}
 
-	currentMutex.Lock()
-	current := currentMap[a.address()]
-	currentMutex.Unlock()
+	var current int
+	if v, ok := currentMap.Load(a.address()); ok {
+		current = v.(int)
+	}
 
 	return f.run(a.Sender, current, a.To, !a.Keep)
 }
@@ -116,7 +117,8 @@ func (a account) run(cancel <-chan struct{}) {
 				if res.success+res.failure > 0 {
 					log.Printf("%s - success: %d, failure: %d", a.address(), res.success, res.failure)
 					if res.last != 0 {
-						saveCurrentMap(a.address(), res.last)
+						currentMap.Store(a.address(), res.last)
+						saveCurrentMap()
 					}
 				}
 			}

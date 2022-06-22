@@ -21,8 +21,7 @@ var (
 	accountList  []*account
 	accountMutex sync.Mutex
 
-	currentMap   = make(map[string]int)
-	currentMutex sync.Mutex
+	currentMap sync.Map
 
 	accountWathcer *watcher.Watcher
 )
@@ -72,7 +71,6 @@ func loadCurrentMap() error {
 		return err
 	}
 
-	m := make(map[string]int)
 	for _, row := range rows {
 		fields := strings.FieldsFunc(row, func(c rune) bool { return c == ':' })
 		if l := len(fields); l == 0 {
@@ -86,28 +84,19 @@ func loadCurrentMap() error {
 			log.Println("invalid value:", row)
 			continue
 		}
-		m[strings.TrimSpace(fields[0])] = last
+		currentMap.Store(strings.TrimSpace(fields[0]), last)
 	}
 
-	currentMutex.Lock()
-	defer currentMutex.Unlock()
-
-	currentMap = m
 	return nil
 }
 
-func saveCurrentMap(address string, last int) {
-	currentMutex.Lock()
-	defer currentMutex.Unlock()
-
-	currentMap[address] = last
-
+func saveCurrentMap() {
 	accountMutex.Lock()
 	defer accountMutex.Unlock()
 
 	var rows []string
 	for _, i := range accountList {
-		if current := currentMap[i.address()]; current > 0 {
+		if current, ok := currentMap.Load(i.address()); ok && current.(int) > 0 {
 			rows = append(rows, fmt.Sprintf("%s:%d", i.address(), current))
 		}
 	}
