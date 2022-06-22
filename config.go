@@ -22,6 +22,7 @@ var (
 	accountMutex sync.Mutex
 
 	currentMap sync.Map
+	operation  sync.Map
 
 	accountWathcer *watcher.Watcher
 )

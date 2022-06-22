@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	m "net/mail"
-	"sync"
 	"time"
 
 	"github.com/sunshineplan/cipher"
@@ -102,11 +101,10 @@ func (a account) run(cancel <-chan struct{}) {
 	t := time.NewTicker(refresh)
 	defer t.Stop()
 
-	var locker sync.Mutex
 	for {
 		select {
 		case <-t.C:
-			if !locker.TryLock() {
+			if _, ok := operation.LoadOrStore(a.address(), nil); ok {
 				log.Printf("%s - [WARN]Previous operation has not finished.", a.address())
 				break
 			}
@@ -123,7 +121,7 @@ func (a account) run(cancel <-chan struct{}) {
 				}
 			}
 
-			locker.Unlock()
+			operation.Delete(a.address())
 
 		case <-cancel:
 			return
