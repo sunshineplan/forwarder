@@ -74,7 +74,7 @@ func (f *forwarder) forward(sender *mail.Dialer, id int, to []string, delete boo
 			ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 			defer cancel()
 
-			return nil, d.SendMail(ctx, sender.Account, to, []byte(s))
+			return nil, d.SendMail(ctx, d.Account, to, []byte(s))
 		},
 	); err != nil {
 		return err
