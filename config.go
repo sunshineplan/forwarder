@@ -15,7 +15,7 @@ import (
 	"github.com/sunshineplan/utils/watcher"
 )
 
-const defaultInterval = 5 * time.Minute
+const defaultInterval = time.Minute
 
 var (
 	accountList  []*account
@@ -36,6 +36,7 @@ func loadAccountList() error {
 	accountMutex.Lock()
 	defer accountMutex.Unlock()
 
+	accountList = nil
 	if err := json.Unmarshal(b, &accountList); err != nil {
 		return err
 	}

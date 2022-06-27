@@ -8,11 +8,11 @@ require (
 	github.com/sunshineplan/service v1.0.3
 	github.com/sunshineplan/utils v0.1.3
 	github.com/vharitonsky/iniflags v0.0.0-20180513140207-a33cd0b5f3de
-	golang.org/x/net v0.0.0-20220621193019-9d032be2e588
+	golang.org/x/net v0.0.0-20220624214902-1bab6f366d9e
 )
 
 require (
 	github.com/pschlump/AesCCM v0.0.0-20160925022350-c5df73b5834e // indirect
-	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
-	golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c // indirect
+	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
+	golang.org/x/sys v0.0.0-20220624220833-87e55d714810 // indirect
 )
