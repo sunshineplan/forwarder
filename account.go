@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	m "net/mail"
 	"time"
 
 	"github.com/sunshineplan/cipher"
@@ -39,7 +38,7 @@ func (a account) domain() string {
 }
 
 func (a account) address() string {
-	if addr, err := m.ParseAddress(a.Username); err == nil {
+	if addr, err := mail.ParseAddress(a.Username); err == nil {
 		return addr.Address
 	} else {
 		return fmt.Sprintf("%s@%s", a.Username, a.domain())
