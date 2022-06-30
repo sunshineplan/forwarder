@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/sunshineplan/utils/mail"
@@ -58,13 +57,18 @@ func run() {
 
 		if accountWathcer != nil {
 			if event, ok := <-accountWathcer.Events; ok {
+				log.Println("account list file operation:", event.Op)
 				switch op := event.Op.String(); op {
-				case "CREATE", "REMOVE", "WRITE", "RENAME":
-					log.Println("account list file operation:", strings.ToLower(op))
+				case "CREATE", "WRITE":
 					close(c)
 					if err := loadAccountList(); err != nil {
 						log.Println("failed to load account list:", err)
 					}
+				case "REMOVE", "RENAME":
+					close(c)
+					accountMutex.Lock()
+					accountList = nil
+					accountMutex.Unlock()
 				}
 				continue
 			} else {
