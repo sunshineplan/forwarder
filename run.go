@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/sunshineplan/utils/mail"
-	"github.com/sunshineplan/utils/watcher"
 )
 
 var (
@@ -27,7 +26,15 @@ func run() {
 	if err := loadAccountList(); err != nil {
 		log.Fatalln("failed to init account list:", err)
 	}
-	accountWathcer = watcher.New(*accounts, time.Second)
+	accountWathcer, err = fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer accountWathcer.Close()
+
+	if err := accountWathcer.Add(*accounts); err != nil {
+		log.Println("failed to watch account list file:", err)
+	}
 
 	if err := loadCurrentMap(); err != nil {
 		log.Print(err)
@@ -43,10 +50,17 @@ func run() {
 		accountMutex.Unlock()
 
 		select {
-		case <-accountWathcer.C:
-			close(c)
-			if err := loadAccountList(); err != nil {
-				log.Println("failed to load account list:", err)
+		case event, ok := <-accountWathcer.Events:
+			if !ok {
+				return
+			}
+			if event.Op&fsnotify.Write == fsnotify.Write {
+				close(c)
+				if err := loadAccountList(); err != nil {
+					log.Println("failed to load account list:", err)
+				}
+			} else {
+				log.Fatalln("Account list file:", event.Op)
 			}
 		}
 	}

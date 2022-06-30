@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/sunshineplan/cipher"
 	"github.com/sunshineplan/utils/txt"
-	"github.com/sunshineplan/utils/watcher"
 )
 
 const defaultInterval = time.Minute
@@ -24,7 +24,7 @@ var (
 	currentMap sync.Map
 	operation  sync.Map
 
-	accountWathcer *watcher.Watcher
+	accountWathcer *fsnotify.Watcher
 )
 
 func loadAccountList() error {
