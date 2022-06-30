@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/sunshineplan/utils/mail"
@@ -24,16 +25,21 @@ func run() {
 	}
 
 	if err := loadAccountList(); err != nil {
-		log.Fatalln("failed to init account list:", err)
+		log.Println("failed to init account list:", err)
 	}
-	accountWathcer, err = fsnotify.NewWatcher()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer accountWathcer.Close()
 
-	if err := accountWathcer.Add(*accounts); err != nil {
-		log.Println("failed to watch account list file:", err)
+	accountWathcer, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Print(err)
+	} else {
+		defer accountWathcer.Close()
+
+		if err = accountWathcer.Add(*accounts); err != nil {
+			log.Println("failed to watching account list file:", err)
+		}
+	}
+	if err != nil && len(accountList) == 0 {
+		return
 	}
 
 	if err := loadCurrentMap(); err != nil {
@@ -44,25 +50,32 @@ func run() {
 		c := make(chan struct{})
 
 		accountMutex.Lock()
+		l := len(accountList)
 		for _, i := range accountList {
 			go i.run(c)
 		}
 		accountMutex.Unlock()
 
-		select {
-		case event, ok := <-accountWathcer.Events:
-			if !ok {
-				return
-			}
-			if event.Op&fsnotify.Write == fsnotify.Write {
-				close(c)
-				if err := loadAccountList(); err != nil {
-					log.Println("failed to load account list:", err)
+		if accountWathcer != nil {
+			if event, ok := <-accountWathcer.Events; ok {
+				switch op := event.Op.String(); op {
+				case "CREATE", "REMOVE", "WRITE", "RENAME":
+					log.Println("account list file operation:", strings.ToLower(op))
+					close(c)
+					if err := loadAccountList(); err != nil {
+						log.Println("failed to load account list:", err)
+					}
 				}
+				continue
 			} else {
-				log.Fatalln("Account list file:", event.Op)
+				log.Print("account list file watcher closed")
 			}
 		}
+
+		if l == 0 {
+			return
+		}
+		<-c
 	}
 }
 

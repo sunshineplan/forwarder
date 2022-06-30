@@ -10,7 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/fsnotify/fsnotify"
 	"github.com/sunshineplan/cipher"
 	"github.com/sunshineplan/utils/txt"
 )
@@ -23,8 +22,6 @@ var (
 
 	currentMap sync.Map
 	operation  sync.Map
-
-	accountWathcer *fsnotify.Watcher
 )
 
 func loadAccountList() error {
@@ -63,6 +60,7 @@ func loadAccountList() error {
 			}
 		}
 	}
+	log.Printf("loaded %d account(s)", len(accountList))
 
 	return nil
 }
