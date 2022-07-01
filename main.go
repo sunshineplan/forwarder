@@ -20,6 +20,7 @@ var svc = service.Service{
 	TestExec: test,
 	Options: service.Options{
 		Dependencies: []string{"Wants=network-online.target", "After=network.target"},
+		UpdateURL:    "https://github.com/sunshineplan/forwarder/releases/latest/download/forwarder",
 	},
 }
 
@@ -43,6 +44,7 @@ func main() {
 	flag.IntVar(&defaultSender.Port, "port", 0, "Mail server port")
 	flag.StringVar(&defaultSender.Account, "account", "", "Mail account name")
 	flag.StringVar(&defaultSender.Password, "password", "", "Mail account password")
+	flag.StringVar(&svc.Options.UpdateURL, "update", svc.Options.UpdateURL, "Update URL")
 	iniflags.SetConfigFile(filepath.Join(filepath.Dir(self), "config.ini"))
 	iniflags.SetAllowMissingConfigFile(true)
 	iniflags.SetAllowUnknownFlags(true)
