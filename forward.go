@@ -93,7 +93,7 @@ type result struct {
 	failure int
 }
 
-func (f *forwarder) run(sender *mail.Dialer, current int, to []string, delete bool) (res result, err error) {
+func (f *forwarder) run(sender *mail.Dialer, current int, to []string, delete, dryRun bool) (res result, err error) {
 	msgs, err := f.Uidl(0)
 	if err != nil {
 		return
@@ -111,13 +111,18 @@ func (f *forwarder) run(sender *mail.Dialer, current int, to []string, delete bo
 			continue
 		}
 
-		if forwardErr := f.forward(sender, msg.ID, to, delete); forwardErr != nil {
-			failure++
-			log.Print(forwardErr)
-		} else {
+		if dryRun {
 			success++
-			if !delete {
-				current = n
+			current = n
+		} else {
+			if forwardErr := f.forward(sender, msg.ID, to, delete); forwardErr != nil {
+				failure++
+				log.Print(forwardErr)
+			} else {
+				success++
+				if !delete {
+					current = n
+				}
 			}
 		}
 	}

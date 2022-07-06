@@ -57,7 +57,7 @@ func (a account) connect() (*pop3.Client, error) {
 	return dial(ctx, fmt.Sprintf("%s:%d", a.Server, a.Port))
 }
 
-func (a account) start() (res result, err error) {
+func (a account) start(dryRun bool) (res result, err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("%v", e)
@@ -85,7 +85,7 @@ func (a account) start() (res result, err error) {
 		current = v.(int)
 	}
 
-	return f.run(a.Sender, current, a.To, !a.Keep)
+	return f.run(a.Sender, current, a.To, !a.Keep, dryRun)
 }
 
 func (a account) run(cancel <-chan struct{}) {
@@ -108,7 +108,7 @@ func (a account) run(cancel <-chan struct{}) {
 				break
 			}
 
-			if res, err := a.start(); err != nil {
+			if res, err := a.start(false); err != nil {
 				log.Printf("%s - [ERROR]%s", a.address(), err)
 			} else {
 				if res.success+res.failure > 0 {

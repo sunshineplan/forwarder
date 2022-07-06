@@ -84,8 +84,22 @@ func run() {
 }
 
 func test() error {
+	var errCount int
 	if err := loadAccountList(); err != nil {
-		return fmt.Errorf("failed to load account: %s", err)
+		log.Println("failed to load account:", err)
+		errCount++
+	} else {
+		for i, account := range accountList {
+			address := account.address()
+			if res, err := account.start(true); err != nil {
+				log.Printf("[%d] %s: %s", i+1, address, err)
+				errCount++
+			} else if res.last == 0 {
+				log.Printf("[%d] %s has no mails on the server", i+1, address)
+			} else {
+				log.Printf("[%d] %s last UID is %d", i+1, address, res.last)
+			}
+		}
 	}
 
 	if *defaultSender != emptyDialer {
@@ -94,9 +108,13 @@ func test() error {
 			Subject: "Test Mail",
 			Body:    "Test",
 		}); err != nil {
-			return fmt.Errorf("failed to send test mail: %s", err)
+			log.Println("failed to send test mail:", err)
+			errCount++
 		}
 	}
 
-	return nil
+	if errCount == 0 {
+		return nil
+	}
+	return fmt.Errorf("%d error(s) encountered", errCount)
 }
