@@ -56,7 +56,7 @@ func (f *forwarder) auth(domain, username, password string) error {
 
 func (f *forwarder) forward(sender *mail.Dialer, id int, to []string, delete bool) error {
 	if (sender == nil || *sender == emptyDialer) && *defaultSender == emptyDialer {
-		return emptyDialerErr
+		return errEmptyDialer
 	}
 
 	s, err := f.Retr(id)

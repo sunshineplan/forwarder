@@ -27,9 +27,9 @@ var svc = service.Service{
 var (
 	accounts = flag.String("accounts", "", "Path to account list file")
 	current  = flag.String("current", "", "Path to current map file")
-	key      = flag.String("key", "forwarder", "Encrypt key")
+	logPath  = flag.String("log", "", "Path to log file")
 	interval = flag.Duration("interval", defaultInterval, "Default refresh interval")
-	logPath  = flag.String("log", "", "Log path")
+	key      = flag.String("key", "forwarder", "Encrypt key")
 )
 
 var defaultSender = new(mail.Dialer)
@@ -39,16 +39,12 @@ func main() {
 	if err != nil {
 		log.Fatalln("Failed to get self path:", err)
 	}
-
-	flag.StringVar(&defaultSender.Server, "server", "", "Mail server address")
-	flag.IntVar(&defaultSender.Port, "port", 0, "Mail server port")
-	flag.StringVar(&defaultSender.Account, "account", "", "Mail account name")
 	flag.StringVar(&defaultSender.Password, "password", "", "Mail account password")
 	flag.StringVar(&svc.Options.UpdateURL, "update", svc.Options.UpdateURL, "Update URL")
 	iniflags.SetConfigFile(filepath.Join(filepath.Dir(self), "config.ini"))
 	iniflags.SetAllowMissingConfigFile(true)
 	iniflags.SetAllowUnknownFlags(true)
-	iniflags.Parse()
+	parse()
 
 	if defaultSender.Password != "" {
 		password, err := cipher.DecryptText(*key, defaultSender.Password)

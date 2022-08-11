@@ -12,7 +12,7 @@ import (
 
 var (
 	emptyDialer    mail.Dialer
-	emptyDialerErr = errors.New("empty dialer configuration")
+	errEmptyDialer = errors.New("empty dialer configuration")
 )
 
 func run() {
