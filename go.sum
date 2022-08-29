@@ -18,8 +18,8 @@ github.com/pschlump/json v0.0.0-20180316172947-0d2e6a308e08 h1:vlHZH1VS4Wt4C8Jk1
 github.com/pschlump/json v0.0.0-20180316172947-0d2e6a308e08/go.mod h1:MyeKNxcsYS/AaCqIp6DgPdaE/4NVH49OJVCnQsRoevI=
 github.com/sunshineplan/cipher v1.0.4 h1:ZXvY1wqexr5uVQCYi5dRTiPFcHmsPwj4hR7GZLEw/uc=
 github.com/sunshineplan/cipher v1.0.4/go.mod h1:OENrTLa23VKXHetbsBItaxcGja8cPH7p5u86f3cRvT8=
-github.com/sunshineplan/service v1.0.4 h1:UfLqaRkup4kPF/GI3wzjh1aD5PiNYmcBfpWQlFE7Nc0=
-github.com/sunshineplan/service v1.0.4/go.mod h1:qNtfrdTOlWfPHVc88+rFMtoWg9iWHFGHfVQgiO7/avk=
+github.com/sunshineplan/service v1.0.5 h1:xKXV45AIvTBaSgz1WJM84t8TLsvbvhUc/ysfh/r5xVE=
+github.com/sunshineplan/service v1.0.5/go.mod h1:QghA3gsLU71EeiiKIhMUXnApnUdVvtC5nSsZl9jvNfw=
 github.com/sunshineplan/utils v0.1.5 h1:13Zxnil/vh0l3OBZjoudAkZCczWOEE1LAQvIOwMAgng=
 github.com/sunshineplan/utils v0.1.5/go.mod h1:HfKwfZdb8gYzo451GrkSqdNQE6xVRtdLJ6gZV5XRaC4=
 github.com/vharitonsky/iniflags v0.0.0-20180513140207-a33cd0b5f3de h1:fkw+7JkxF3U1GzQoX9h69Wvtvxajo5Rbzy6+YMMzPIg=
@@ -34,8 +34,8 @@ golang.org/x/sys v0.0.0-20190222072716-a9d3bda3a223/go.mod h1:STP8DvDyc/dI5b8T5h
 golang.org/x/sys v0.0.0-20201119102817-f84b799fce68/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220412211240-33da011f77ad/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
-golang.org/x/sys v0.0.0-20220808155132-1c4a2a72c664 h1:v1W7bwXHsnLLloWYTVEdvGvA7BHMeBYsPcF0GLDxIRs=
-golang.org/x/sys v0.0.0-20220808155132-1c4a2a72c664/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.0.0-20220825204002-c680a09ffe64 h1:UiNENfZ8gDvpiWw7IpOMQ27spWmThO1RwwdQVbJahJM=
+golang.org/x/sys v0.0.0-20220825204002-c680a09ffe64/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
 golang.org/x/text v0.3.3/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=
 golang.org/x/tools v0.0.0-20180917221912-90fa682c2a6e/go.mod h1:n7NCudcB/nEzxVGmLbDWY5pfWTLqBcC2KZ6jyYvM4mQ=
