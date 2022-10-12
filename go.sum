@@ -20,8 +20,8 @@ github.com/sunshineplan/cipher v1.0.4 h1:ZXvY1wqexr5uVQCYi5dRTiPFcHmsPwj4hR7GZLE
 github.com/sunshineplan/cipher v1.0.4/go.mod h1:OENrTLa23VKXHetbsBItaxcGja8cPH7p5u86f3cRvT8=
 github.com/sunshineplan/service v1.0.5 h1:xKXV45AIvTBaSgz1WJM84t8TLsvbvhUc/ysfh/r5xVE=
 github.com/sunshineplan/service v1.0.5/go.mod h1:QghA3gsLU71EeiiKIhMUXnApnUdVvtC5nSsZl9jvNfw=
-github.com/sunshineplan/utils v0.1.8 h1:X3SKvob7bXz/MLYplRSWZXUuAh3bPNmBj+nn3qz/UQM=
-github.com/sunshineplan/utils v0.1.8/go.mod h1:HfKwfZdb8gYzo451GrkSqdNQE6xVRtdLJ6gZV5XRaC4=
+github.com/sunshineplan/utils v0.1.10 h1:78z7AXOx/DCNei27GfUuiPTZ54MXiFJEp9Enuisu6b8=
+github.com/sunshineplan/utils v0.1.10/go.mod h1:HfKwfZdb8gYzo451GrkSqdNQE6xVRtdLJ6gZV5XRaC4=
 github.com/vharitonsky/iniflags v0.0.0-20180513140207-a33cd0b5f3de h1:fkw+7JkxF3U1GzQoX9h69Wvtvxajo5Rbzy6+YMMzPIg=
 github.com/vharitonsky/iniflags v0.0.0-20180513140207-a33cd0b5f3de/go.mod h1:irMhzlTz8+fVFj6CH2AN2i+WI5S6wWFtK3MBCIxIpyI=
 golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
