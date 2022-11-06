@@ -8,20 +8,18 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
+
+	"github.com/sunshineplan/forwarder"
 
 	"github.com/sunshineplan/cipher"
 	"github.com/sunshineplan/utils/txt"
 )
 
-const defaultInterval = time.Minute
-
 var (
-	accountList  []*account
+	accountList  []*forwarder.Account
 	accountMutex sync.Mutex
 
 	currentMap sync.Map
-	operation  sync.Map
 )
 
 func loadAccountList() error {
@@ -47,6 +45,13 @@ func loadAccountList() error {
 			}
 		}
 
+		password, err := cipher.DecryptText(*key, i.Password)
+		if err != nil {
+			log.Print(err)
+		} else {
+			i.Password = password
+		}
+
 		if i.Sender != nil {
 			if i.Sender.Port == 0 {
 				i.Sender.Port = 587
@@ -54,10 +59,12 @@ func loadAccountList() error {
 
 			password, err := cipher.DecryptText(*key, i.Sender.Password)
 			if err != nil {
-				log.Printf("%s - [WARN]Failed to decrypt sender password: %s", i.address(), err)
+				log.Printf("%s - [WARN]Failed to decrypt sender password: %s", i.Address(), err)
 			} else {
 				i.Sender.Password = password
 			}
+		} else {
+			i.Sender = defaultSender
 		}
 	}
 	log.Printf("loaded %d account(s)", len(accountList))
@@ -84,7 +91,12 @@ func loadCurrentMap() error {
 			log.Println("invalid value:", row)
 			continue
 		}
-		currentMap.Store(strings.TrimSpace(fields[0]), last)
+		for _, i := range accountList {
+			if address := strings.TrimSpace(fields[0]); i.Address() == address {
+				currentMap.Store(address, last)
+				i.Current = last
+			}
+		}
 	}
 
 	return nil
@@ -96,8 +108,8 @@ func saveCurrentMap() {
 
 	var rows []string
 	for _, i := range accountList {
-		if current, ok := currentMap.Load(i.address()); ok && current.(int) > 0 {
-			rows = append(rows, fmt.Sprintf("%s:%d", i.address(), current))
+		if current, ok := currentMap.Load(i.Address()); ok && current.(int) > 0 {
+			rows = append(rows, fmt.Sprintf("%s:%d", i.Address(), current))
 		}
 	}
 	if len(rows) > 0 {

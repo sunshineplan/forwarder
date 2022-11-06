@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/sunshineplan/forwarder"
+
 	"github.com/sunshineplan/cipher"
 	"github.com/sunshineplan/service"
 	"github.com/sunshineplan/utils/mail"
@@ -28,10 +30,11 @@ var (
 	accounts = flag.String("accounts", "", "Path to account list file")
 	current  = flag.String("current", "", "Path to current map file")
 	logPath  = flag.String("log", "", "Path to log file")
-	interval = flag.Duration("interval", defaultInterval, "Default refresh interval")
+	interval = flag.Duration("interval", forwarder.DefaultInterval, "Default refresh interval")
 	key      = flag.String("key", "forwarder", "Encrypt key")
 )
 
+var emptyDialer mail.Dialer
 var defaultSender = new(mail.Dialer)
 
 func main() {
@@ -66,6 +69,9 @@ func main() {
 	}
 	if *logPath == "" {
 		*logPath = filepath.Join(filepath.Dir(self), "forwarder.log")
+	}
+	if *interval != 0 {
+		forwarder.DefaultInterval = *interval
 	}
 
 	if service.IsWindowsService() {

@@ -1,4 +1,4 @@
-package main
+package forwarder
 
 import (
 	"context"
@@ -6,18 +6,22 @@ import (
 	"log"
 	"time"
 
-	"github.com/sunshineplan/cipher"
 	"github.com/sunshineplan/utils/mail"
 	"github.com/sunshineplan/utils/pop3"
 	"golang.org/x/net/publicsuffix"
 )
 
-type account struct {
+var DefaultInterval = time.Minute
+
+type Account struct {
 	Server   string
 	Port     int
 	IsTLS    bool `json:"tls"`
 	Username string
 	Password string
+
+	Current int
+	Running bool
 
 	Sender *mail.Dialer
 
@@ -25,10 +29,10 @@ type account struct {
 
 	Keep bool
 
-	Refresh string
+	Refresh time.Duration
 }
 
-func (a account) domain() string {
+func (a Account) domain() string {
 	domain, err := publicsuffix.EffectiveTLDPlusOne(a.Server)
 	if err != nil {
 		panic(err)
@@ -37,15 +41,7 @@ func (a account) domain() string {
 	return domain
 }
 
-func (a account) address() string {
-	if addr, err := mail.ParseAddress(a.Username); err == nil {
-		return addr.Address
-	} else {
-		return fmt.Sprintf("%s@%s", a.Username, a.domain())
-	}
-}
-
-func (a account) connect() (*pop3.Client, error) {
+func (a Account) connect() (*pop3.Client, error) {
 	dial := pop3.Dial
 	if a.IsTLS {
 		dial = pop3.DialTLS
@@ -57,17 +53,20 @@ func (a account) connect() (*pop3.Client, error) {
 	return dial(ctx, fmt.Sprintf("%s:%d", a.Server, a.Port))
 }
 
-func (a account) start(dryRun bool) (res result, err error) {
+func (a Account) Address() string {
+	if addr, err := mail.ParseAddress(a.Username); err == nil {
+		return addr.Address
+	} else {
+		return fmt.Sprintf("%s@%s", a.Username, a.domain())
+	}
+}
+
+func (a *Account) Start(dryRun bool) (res Result, err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("%v", e)
 		}
 	}()
-
-	password, err := cipher.DecryptText(*key, a.Password)
-	if err != nil {
-		return
-	}
 
 	client, err := a.connect()
 	if err != nil {
@@ -76,51 +75,46 @@ func (a account) start(dryRun bool) (res result, err error) {
 	defer client.Quit()
 
 	f := &forwarder{client, nil}
-	if err = f.auth(a.domain(), a.Username, password); err != nil {
+	if err = f.auth(a.domain(), a.Username, a.Password); err != nil {
 		return
 	}
 
-	var current int
-	if v, ok := currentMap.Load(a.address()); ok {
-		current = v.(int)
-	}
-
-	return f.run(a.Sender, current, a.To, !a.Keep, dryRun)
+	return f.run(a, dryRun)
 }
 
-func (a account) run(cancel <-chan struct{}) {
-	refresh, err := time.ParseDuration(a.Refresh)
-	if a.Refresh != "" && err != nil {
-		log.Printf("%s - [ERROR]: %s", a.address(), err)
-	}
-	if refresh == 0 {
-		refresh = *interval
+func (a *Account) Run(success chan<- int, cancel <-chan struct{}) {
+	if a.Refresh == 0 {
+		a.Refresh = DefaultInterval
 	}
 
-	t := time.NewTicker(refresh)
+	t := time.NewTicker(a.Refresh)
 	defer t.Stop()
 
 	for {
 		select {
 		case <-t.C:
-			if _, ok := operation.LoadOrStore(a.address(), nil); ok {
-				log.Printf("%s - [WARN]Previous operation has not finished.", a.address())
+			if a.Running {
+				log.Printf("%s - [WARN]Previous operation has not finished.", a.Address())
 				break
+			} else {
+				a.Running = true
 			}
 
-			if res, err := a.start(false); err != nil {
-				log.Printf("%s - [ERROR]%s", a.address(), err)
+			if res, err := a.Start(false); err != nil {
+				log.Printf("%s - [ERROR]%s", a.Address(), err)
 			} else {
-				if res.success+res.failure > 0 {
-					log.Printf("%s - success: %d, failure: %d", a.address(), res.success, res.failure)
-					if res.last != 0 {
-						currentMap.Store(a.address(), res.last)
-						saveCurrentMap()
+				if res.Success+res.Failure > 0 {
+					log.Printf("%s - success: %d, failure: %d", a.Address(), res.Success, res.Failure)
+					if res.Last != 0 {
+						a.Current = res.Last
+					}
+					if success != nil {
+						success <- a.Current
 					}
 				}
 			}
 
-			operation.Delete(a.address())
+			a.Running = false
 
 		case <-cancel:
 			return

@@ -1,18 +1,12 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"os"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/sunshineplan/utils/mail"
-)
-
-var (
-	emptyDialer    mail.Dialer
-	errEmptyDialer = errors.New("empty dialer configuration")
 )
 
 func run() {
@@ -45,13 +39,22 @@ func run() {
 		log.Print(err)
 	}
 
+	s := make(chan int)
+	go func() {
+		for current := range s {
+			if current != 0 {
+				saveCurrentMap()
+			}
+		}
+	}()
+
 	for {
 		c := make(chan struct{})
 
 		accountMutex.Lock()
 		l := len(accountList)
 		for _, i := range accountList {
-			go i.run(c)
+			go i.Run(s, c)
 		}
 		accountMutex.Unlock()
 
@@ -90,14 +93,14 @@ func test() error {
 		errCount++
 	} else {
 		for i, account := range accountList {
-			address := account.address()
-			if res, err := account.start(true); err != nil {
+			address := account.Address()
+			if res, err := account.Start(true); err != nil {
 				log.Printf("[%d] %s: %s", i+1, address, err)
 				errCount++
-			} else if res.last == 0 {
+			} else if res.Last == 0 {
 				log.Printf("[%d] %s has no mails on the server", i+1, address)
 			} else {
-				log.Printf("[%d] %s last UID is %d", i+1, address, res.last)
+				log.Printf("[%d] %s last UID is %d", i+1, address, res.Last)
 			}
 		}
 	}

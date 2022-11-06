@@ -1,16 +1,20 @@
-package main
+package forwarder
 
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"log"
 	"strconv"
-	"time"
 
 	"github.com/Azure/go-ntlmssp"
-	"github.com/sunshineplan/utils/executor"
 	"github.com/sunshineplan/utils/mail"
 	"github.com/sunshineplan/utils/pop3"
+)
+
+var (
+	emptyDialer    mail.Dialer
+	errEmptyDialer = errors.New("empty dialer configuration")
 )
 
 func ntlmAuth(client *pop3.Client, domain, username, password string) (err error) {
@@ -55,7 +59,7 @@ func (f *forwarder) auth(domain, username, password string) error {
 }
 
 func (f *forwarder) forward(sender *mail.Dialer, id int, to []string, delete bool) error {
-	if (sender == nil || *sender == emptyDialer) && *defaultSender == emptyDialer {
+	if sender == nil || *sender == emptyDialer {
 		return errEmptyDialer
 	}
 
@@ -64,19 +68,10 @@ func (f *forwarder) forward(sender *mail.Dialer, id int, to []string, delete boo
 		return err
 	}
 
-	if _, err := executor.ExecuteSerial(
-		[]*mail.Dialer{sender, defaultSender},
-		func(d *mail.Dialer) (any, error) {
-			if d == nil || *d == emptyDialer {
-				return nil, executor.SkipErr
-			}
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultInterval)
+	defer cancel()
 
-			ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-			defer cancel()
-
-			return nil, d.SendMail(ctx, d.Account, to, []byte(s))
-		},
-	); err != nil {
+	if err := sender.SendMail(ctx, sender.Account, to, []byte(s)); err != nil {
 		return err
 	}
 
@@ -87,13 +82,13 @@ func (f *forwarder) forward(sender *mail.Dialer, id int, to []string, delete boo
 	}
 }
 
-type result struct {
-	last    int
-	success int
-	failure int
+type Result struct {
+	Last    int
+	Success int
+	Failure int
 }
 
-func (f *forwarder) run(sender *mail.Dialer, current int, to []string, delete, dryRun bool) (res result, err error) {
+func (f *forwarder) run(account *Account, dryRun bool) (res Result, err error) {
 	msgs, err := f.Uidl(0)
 	if err != nil {
 		return
@@ -107,26 +102,26 @@ func (f *forwarder) run(sender *mail.Dialer, current int, to []string, delete, d
 			return
 		}
 
-		if current > 0 && current >= n {
+		if account.Current > 0 && account.Current >= n {
 			continue
 		}
 
 		if dryRun {
 			success++
-			current = n
+			account.Current = n
 		} else {
-			if forwardErr := f.forward(sender, msg.ID, to, delete); forwardErr != nil {
+			if forwardErr := f.forward(account.Sender, msg.ID, account.To, !account.Keep); forwardErr != nil {
 				failure++
 				log.Print(forwardErr)
 			} else {
 				success++
-				if !delete {
-					current = n
+				if account.Keep {
+					account.Current = n
 				}
 			}
 		}
 	}
-	res = result{current, success, failure}
+	res = Result{account.Current, success, failure}
 
 	return
 }
