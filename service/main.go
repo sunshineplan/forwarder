@@ -83,27 +83,10 @@ func main() {
 	case 0:
 		run()
 	case 1:
-		switch flag.Arg(0) {
-		case "run":
-			svc.Run(false)
-		case "debug":
-			svc.Run(true)
-		case "test":
-			err = svc.Test()
-		case "install":
-			err = svc.Install()
-		case "remove":
-			err = svc.Remove()
-		case "start":
-			err = svc.Start()
-		case "stop":
-			err = svc.Stop()
-		case "restart":
-			err = svc.Restart()
-		case "update":
-			err = svc.Update()
-		default:
-			log.Fatalln("Unknown argument:", flag.Arg(0))
+		cmd := flag.Arg(0)
+		var ok bool
+		if ok, err = svc.Command(cmd); !ok {
+			log.Fatalln("Unknown argument:", cmd)
 		}
 	default:
 		log.Fatalln("Unknown arguments:", strings.Join(flag.Args(), " "))
