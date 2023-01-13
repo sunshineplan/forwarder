@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/vharitonsky/iniflags"
+	"github.com/sunshineplan/utils/flags"
 )
 
 func parse() {
@@ -34,5 +34,5 @@ func parse() {
 	flag.StringVar(&defaultSender.Server, "server", "", "Mail server address")
 	flag.IntVar(&defaultSender.Port, "port", 0, "Mail server port")
 	flag.StringVar(&defaultSender.Account, "account", "", "Mail account name")
-	iniflags.Parse()
+	flags.Parse()
 }

@@ -11,8 +11,8 @@ import (
 
 	"github.com/sunshineplan/cipher"
 	"github.com/sunshineplan/service"
+	"github.com/sunshineplan/utils/flags"
 	"github.com/sunshineplan/utils/mail"
-	"github.com/vharitonsky/iniflags"
 )
 
 var svc = service.Service{
@@ -44,9 +44,7 @@ func main() {
 	}
 	flag.StringVar(&defaultSender.Password, "password", "", "Mail account password")
 	flag.StringVar(&svc.Options.UpdateURL, "update", svc.Options.UpdateURL, "Update URL")
-	iniflags.SetConfigFile(filepath.Join(filepath.Dir(self), "config.ini"))
-	iniflags.SetAllowMissingConfigFile(true)
-	iniflags.SetAllowUnknownFlags(true)
+	flags.SetConfigFile(filepath.Join(filepath.Dir(self), "config.ini"))
 	parse()
 
 	if defaultSender.Password != "" {

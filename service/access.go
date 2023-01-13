@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/vharitonsky/iniflags"
+	"github.com/sunshineplan/utils/flags"
 )
 
 const (
@@ -36,7 +36,7 @@ func parse() {
   -interval duration
         Default refresh interval (default 1m0s)`)
 	}
-	iniflags.Parse()
+	flags.Parse()
 
 	url := url.URL{Scheme: "https", Host: *domain, Path: access}
 	resp, err := http.Get(url.String())
