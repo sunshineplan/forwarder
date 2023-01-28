@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/sunshineplan/utils/mail"
@@ -29,7 +30,7 @@ type Account struct {
 
 	Keep bool
 
-	Refresh time.Duration
+	Refresh string
 }
 
 func (a Account) domain() string {
@@ -83,11 +84,18 @@ func (a *Account) Start(dryRun bool) (res Result, err error) {
 }
 
 func (a *Account) Run(success chan<- int, cancel <-chan struct{}) {
-	if a.Refresh == 0 {
-		a.Refresh = DefaultInterval
+	if _, err := strconv.Atoi(a.Refresh); err == nil {
+		a.Refresh += "s"
+	}
+	refresh, err := time.ParseDuration(a.Refresh)
+	if err != nil {
+		log.Print(err)
+		refresh = DefaultInterval
+	} else if refresh == 0 {
+		refresh = DefaultInterval
 	}
 
-	t := time.NewTicker(a.Refresh)
+	t := time.NewTicker(refresh)
 	defer t.Stop()
 
 	for {
