@@ -8,7 +8,7 @@ require (
 	github.com/sunshineplan/cipher v1.0.4
 	github.com/sunshineplan/service v1.0.6
 	github.com/sunshineplan/utils v0.1.21
-	golang.org/x/net v0.6.0
+	golang.org/x/net v0.7.0
 )
 
 require (
