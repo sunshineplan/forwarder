@@ -4,12 +4,16 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"log"
 	"strconv"
+	"sync"
+	"sync/atomic"
 
 	"github.com/Azure/go-ntlmssp"
 	"github.com/sunshineplan/utils/mail"
 	"github.com/sunshineplan/utils/pop3"
+	"github.com/sunshineplan/utils/workers"
 )
 
 var (
@@ -84,44 +88,78 @@ func (f *forwarder) forward(sender *mail.Dialer, id int, to []string, delete boo
 
 type Result struct {
 	Last    int
-	Success int
-	Failure int
+	Success int64
+	Failure int64
 }
 
 func (f *forwarder) run(account *Account, dryRun bool) (res Result, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			switch x := r.(type) {
+			case string:
+				err = errors.New(x)
+			case error:
+				err = x
+			default:
+				err = fmt.Errorf("unknown panic: %v", x)
+			}
+		}
+	}()
+
 	msgs, err := f.Uidl(0)
 	if err != nil {
 		return
 	}
 
-	var success, failure int
-	for _, msg := range msgs {
-		var n int
-		n, err = strconv.Atoi(msg.UID)
-		if err != nil {
+	ctx, cancel := context.WithCancelCause(context.Background())
+	defer cancel(nil)
+
+	var mu sync.Mutex
+	var index int
+	var success, failure atomic.Int64
+	current := account.Current
+	workers.Slice(msgs, func(i int, msg pop3.MessageID) {
+		if ctx.Err() != nil {
 			return
 		}
 
-		if account.Current > 0 && account.Current >= n {
-			continue
+		n, err := strconv.Atoi(msg.UID)
+		if err != nil {
+			cancel(err)
+			return
+		}
+
+		if current > 0 && current >= n {
+			return
 		}
 
 		if dryRun {
-			success++
-			account.Current = n
+			success.Add(1)
+			mu.Lock()
+			if i >= index {
+				index = i
+				account.Current = n
+			}
+			mu.Unlock()
 		} else {
 			if forwardErr := f.forward(account.Sender, msg.ID, account.To, !account.Keep); forwardErr != nil {
-				failure++
+				failure.Add(1)
 				log.Print(forwardErr)
 			} else {
-				success++
-				if account.Keep {
+				mu.Lock()
+				success.Add(1)
+				if account.Keep && i >= index {
+					index = i
 					account.Current = n
 				}
+				mu.Unlock()
 			}
 		}
+	})
+	if err = context.Cause(ctx); err != nil {
+		return
 	}
-	res = Result{account.Current, success, failure}
+	res = Result{account.Current, success.Load(), failure.Load()}
 
 	return
 }
