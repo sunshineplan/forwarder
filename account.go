@@ -42,7 +42,7 @@ func (a Account) domain() string {
 	return domain
 }
 
-func (a Account) connect() (*pop3.Client, error) {
+func (a Account) client() (*pop3.Client, error) {
 	dial := pop3.Dial
 	if a.IsTLS {
 		dial = pop3.DialTLS
@@ -51,7 +51,16 @@ func (a Account) connect() (*pop3.Client, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
-	return dial(ctx, fmt.Sprintf("%s:%d", a.Server, a.Port))
+	client, err := dial(ctx, fmt.Sprintf("%s:%d", a.Server, a.Port))
+	if err != nil {
+		return nil, err
+	}
+
+	if err := ntlmAuth(client, a.domain(), a.Username, a.Password); err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
 func (a Account) Address() string {
@@ -69,18 +78,7 @@ func (a *Account) Start(dryRun bool) (res Result, err error) {
 		}
 	}()
 
-	client, err := a.connect()
-	if err != nil {
-		return
-	}
-	defer client.Quit()
-
-	f := &forwarder{client, nil}
-	if err = f.auth(a.domain(), a.Username, a.Password); err != nil {
-		return
-	}
-
-	return f.run(a, dryRun)
+	return (&forwarder{a}).run(a, dryRun)
 }
 
 func (a *Account) Run(success chan<- int, cancel <-chan struct{}) {

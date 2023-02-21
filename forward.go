@@ -2,7 +2,6 @@ package forwarder
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"log"
@@ -10,7 +9,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/Azure/go-ntlmssp"
 	"github.com/sunshineplan/utils/mail"
 	"github.com/sunshineplan/utils/pop3"
 	"github.com/sunshineplan/utils/workers"
@@ -21,45 +19,8 @@ var (
 	errEmptyDialer = errors.New("empty dialer configuration")
 )
 
-func ntlmAuth(client *pop3.Client, domain, username, password string) (err error) {
-	if _, err = client.Cmd("AUTH NTLM", false); err != nil {
-		return
-	}
-
-	b, err := ntlmssp.NewNegotiateMessage(domain, "")
-	if err != nil {
-		return
-	}
-
-	s, err := client.Cmd(base64.StdEncoding.EncodeToString(b), false)
-	if err != nil {
-		return
-	}
-
-	b, err = base64.StdEncoding.DecodeString(s)
-	if err != nil {
-		return
-	}
-	b, err = ntlmssp.ProcessChallenge(b, username, password, false)
-	if err != nil {
-		return
-	}
-
-	_, err = client.Cmd(base64.StdEncoding.EncodeToString(b), false)
-
-	return
-}
-
 type forwarder struct {
-	*pop3.Client
-	authFunc func(client *pop3.Client, domain, username, password string) error
-}
-
-func (f *forwarder) auth(domain, username, password string) error {
-	if f.authFunc == nil {
-		f.authFunc = ntlmAuth
-	}
-	return f.authFunc(f.Client, domain, username, password)
+	*Account
 }
 
 func (f *forwarder) forward(sender *mail.Dialer, id int, to []string, delete bool) error {
@@ -67,7 +28,13 @@ func (f *forwarder) forward(sender *mail.Dialer, id int, to []string, delete boo
 		return errEmptyDialer
 	}
 
-	s, err := f.Retr(id)
+	client, err := f.client()
+	if err != nil {
+		return err
+	}
+	defer client.Quit()
+
+	s, err := client.Retr(id)
 	if err != nil {
 		return err
 	}
@@ -80,7 +47,7 @@ func (f *forwarder) forward(sender *mail.Dialer, id int, to []string, delete boo
 	}
 
 	if delete {
-		return f.Dele(id)
+		return client.Dele(id)
 	} else {
 		return nil
 	}
@@ -106,10 +73,16 @@ func (f *forwarder) run(account *Account, dryRun bool) (res Result, err error) {
 		}
 	}()
 
-	msgs, err := f.Uidl(0)
+	var client *pop3.Client
+	client, err = f.client()
 	if err != nil {
 		return
 	}
+	msgs, err := client.Uidl(0)
+	if err != nil {
+		return
+	}
+	client.Quit()
 
 	ctx, cancel := context.WithCancelCause(context.Background())
 	defer cancel(nil)
