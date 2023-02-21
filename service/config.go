@@ -18,8 +18,6 @@ import (
 var (
 	accountList  []*forwarder.Account
 	accountMutex sync.Mutex
-
-	currentMap sync.Map
 )
 
 func loadAccountList() error {
@@ -72,7 +70,7 @@ func loadAccountList() error {
 	return nil
 }
 
-func loadCurrentMap() error {
+func loadCurrent() error {
 	rows, err := txt.ReadFile(*current)
 	if err != nil {
 		return err
@@ -93,7 +91,6 @@ func loadCurrentMap() error {
 		}
 		for _, i := range accountList {
 			if address := strings.TrimSpace(fields[0]); i.Address() == address {
-				currentMap.Store(address, last)
 				i.Current = last
 			}
 		}
@@ -102,14 +99,14 @@ func loadCurrentMap() error {
 	return nil
 }
 
-func saveCurrentMap() {
+func saveCurrent() {
 	accountMutex.Lock()
 	defer accountMutex.Unlock()
 
 	var rows []string
 	for _, i := range accountList {
-		if current, ok := currentMap.Load(i.Address()); ok && current.(int) > 0 {
-			rows = append(rows, fmt.Sprintf("%s:%d", i.Address(), current))
+		if i.Current > 0 {
+			rows = append(rows, fmt.Sprintf("%s:%d", i.Address(), i.Current))
 		}
 	}
 	if len(rows) > 0 {

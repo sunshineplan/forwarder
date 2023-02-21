@@ -36,7 +36,7 @@ func run() {
 		return
 	}
 
-	if err := loadCurrentMap(); err != nil {
+	if err := loadCurrent(); err != nil {
 		log.Print(err)
 	}
 
@@ -44,7 +44,7 @@ func run() {
 	go func() {
 		for current := range s {
 			if current != 0 {
-				saveCurrentMap()
+				saveCurrent()
 			}
 		}
 	}()
