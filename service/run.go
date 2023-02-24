@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/sunshineplan/utils/mail"
@@ -59,23 +58,18 @@ func run() {
 		}
 		accountMutex.Unlock()
 
-		last := time.Now()
 		if accountWathcer != nil {
 			for event := range accountWathcer.Events {
-				if now := time.Now(); now.Sub(last) > time.Second {
-					log.Println("account list file operation:", event.Op)
-					last = now
-				} else {
-					log.Println("ignore operation:", event.Op)
-					continue
-				}
+				log.Println("account list file operation:", event.Op)
 				switch {
 				case event.Has(fsnotify.Create), event.Has(fsnotify.Write):
+					log.Print("account list file changed")
 					close(c)
 					if err := loadAccountList(); err != nil {
 						log.Println("failed to load account list:", err)
 					}
 				case event.Has(fsnotify.Remove), event.Has(fsnotify.Rename):
+					log.Print("account list file removed")
 					close(c)
 					accountMutex.Lock()
 					accountList = nil
