@@ -8,7 +8,7 @@ require (
 	github.com/sunshineplan/cipher v1.0.5
 	github.com/sunshineplan/service v1.0.6
 	github.com/sunshineplan/utils v0.1.27
-	golang.org/x/net v0.8.0
+	golang.org/x/net v0.9.0
 )
 
 require (
@@ -16,5 +16,5 @@ require (
 	github.com/pschlump/MiscLib v1.0.3 // indirect
 	github.com/pschlump/json v1.12.0 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
-	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/sys v0.7.0 // indirect
 )
