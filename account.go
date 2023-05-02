@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	mailpkg "net/mail"
 	"strconv"
 	"time"
 
@@ -26,7 +27,7 @@ type Account struct {
 
 	Sender *mail.Dialer
 
-	To []string
+	To mail.Receipts
 
 	Keep bool
 
@@ -64,7 +65,7 @@ func (a Account) client() (*pop3.Client, error) {
 }
 
 func (a Account) Address() string {
-	if addr, err := mail.ParseAddress(a.Username); err == nil {
+	if addr, err := mailpkg.ParseAddress(a.Username); err == nil {
 		return addr.Address
 	} else {
 		return fmt.Sprintf("%s@%s", a.Username, a.domain())

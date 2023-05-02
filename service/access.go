@@ -12,6 +12,7 @@ import (
 	"os"
 
 	"github.com/sunshineplan/utils/flags"
+	"github.com/sunshineplan/utils/retry"
 )
 
 const (
@@ -39,13 +40,18 @@ func parse() {
 	flags.Parse()
 
 	url := url.URL{Scheme: "https", Host: *domain, Path: access}
-	resp, err := http.Get(url.String())
+	var resp *http.Response
+	var err error
+	retry.Do(func() (err error) {
+		resp, err = http.Get(url.String())
+		if err != nil {
+			return
+		}
+		defer resp.Body.Close()
+		err = json.NewDecoder(resp.Body).Decode(&defaultSender)
+		return
+	}, 5, 60)
 	if err != nil {
-		log.Fatal("access denied")
-	}
-	defer resp.Body.Close()
-
-	if err = json.NewDecoder(resp.Body).Decode(&defaultSender); err != nil {
 		log.Fatal("access denied")
 	}
 }

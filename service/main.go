@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/sunshineplan/forwarder"
 
@@ -72,24 +71,7 @@ func main() {
 		forwarder.DefaultInterval = *interval
 	}
 
-	if service.IsWindowsService() {
-		svc.Run(false)
-		return
-	}
-
-	switch flag.NArg() {
-	case 0:
-		run()
-	case 1:
-		cmd := flag.Arg(0)
-		var ok bool
-		if ok, err = svc.Command(cmd); !ok {
-			log.Fatalln("Unknown argument:", cmd)
-		}
-	default:
-		log.Fatalln("Unknown arguments:", strings.Join(flag.Args(), " "))
-	}
-	if err != nil {
-		log.Fatalf("Failed to %s: %v", flag.Arg(0), err)
+	if err := svc.ParseAndRun(flag.Args()); err != nil {
+		svc.Fatal(err)
 	}
 }

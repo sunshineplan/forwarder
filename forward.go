@@ -115,7 +115,7 @@ func (f *forwarder) run(account *Account, dryRun bool) (res Result, err error) {
 			}
 			mu.Unlock()
 		} else {
-			if forwardErr := f.forward(account.Sender, msg.ID, account.To, !account.Keep); forwardErr != nil {
+			if forwardErr := f.forward(account.Sender, msg.ID, account.To.List(), !account.Keep); forwardErr != nil {
 				failure.Add(1)
 				log.Print(forwardErr)
 			} else {

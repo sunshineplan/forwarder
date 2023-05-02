@@ -9,7 +9,7 @@ import (
 	"github.com/sunshineplan/utils/mail"
 )
 
-func run() {
+func run() error {
 	f, err := os.OpenFile(*logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Println("Failed to open log file:", err)
@@ -31,8 +31,11 @@ func run() {
 			log.Println("failed to watching account list file:", err)
 		}
 	}
-	if err != nil && len(accountList) == 0 {
-		return
+	if err != nil {
+		return err
+	}
+	if len(accountList) == 0 {
+		return nil
 	}
 
 	if err := loadCurrent(); err != nil {
@@ -84,7 +87,7 @@ func run() {
 		}
 
 		if l == 0 {
-			return
+			return nil
 		}
 		<-c
 	}
@@ -111,7 +114,7 @@ func test() error {
 
 	if *defaultSender != emptyDialer {
 		if err := defaultSender.Send(&mail.Message{
-			To:      []string{defaultSender.Account},
+			To:      mail.Receipts{mail.Receipt("", defaultSender.Account)},
 			Subject: "Test Mail",
 			Body:    "Test",
 		}); err != nil {
