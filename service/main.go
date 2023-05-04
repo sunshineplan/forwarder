@@ -14,15 +14,22 @@ import (
 	"github.com/sunshineplan/utils/mail"
 )
 
-var svc = service.Service{
-	Name:     "MailForward",
-	Desc:     "Mail Forward Service",
-	Exec:     run,
-	TestExec: test,
-	Options: service.Options{
+var (
+	svc = service.New()
+
+	emptyDialer   mail.Dialer
+	defaultSender = new(mail.Dialer)
+)
+
+func init() {
+	svc.Name = "MailForward"
+	svc.Desc = "Mail Forward Service"
+	svc.Exec = run
+	svc.TestExec = test
+	svc.Options = service.Options{
 		Dependencies: []string{"Wants=network-online.target", "After=network.target"},
 		UpdateURL:    "https://github.com/sunshineplan/forwarder/releases/latest/download/forwarder",
-	},
+	}
 }
 
 var (
@@ -32,9 +39,6 @@ var (
 	interval = flag.Duration("interval", forwarder.DefaultInterval, "Default refresh interval")
 	key      = flag.String("key", "forwarder", "Encrypt key")
 )
-
-var emptyDialer mail.Dialer
-var defaultSender = new(mail.Dialer)
 
 func main() {
 	self, err := os.Executable()
