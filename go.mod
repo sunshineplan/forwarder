@@ -7,7 +7,7 @@ require (
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/sunshineplan/cipher v1.0.5
 	github.com/sunshineplan/service v1.0.13
-	github.com/sunshineplan/utils v0.1.39
+	github.com/sunshineplan/utils v0.1.40
 	golang.org/x/net v0.10.0
 )
 
