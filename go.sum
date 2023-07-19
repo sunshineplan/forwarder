@@ -16,8 +16,8 @@ github.com/sunshineplan/cipher v1.0.5 h1:opCKCTVjkdcoIJSCi2yoI0ndmwiyDbcm+5Mpyav
 github.com/sunshineplan/cipher v1.0.5/go.mod h1:JMP+4CCZT1D7qjZyuiyTe8ZPYaaBMxU9MWrCBKC/QhQ=
 github.com/sunshineplan/service v1.0.13 h1:MzfLcr9+EyEsh2hTfBrjNHakGLga27ru49BKd12uz/o=
 github.com/sunshineplan/service v1.0.13/go.mod h1:luZzA2SGoyNXBr69FeaV+3wCOgFyy/9w9CQJerYElOs=
-github.com/sunshineplan/utils v0.1.44 h1:sqoM+nfnXnsrGY2U+vD0OjMzzTkdzQcw7m5myYgbNSY=
-github.com/sunshineplan/utils v0.1.44/go.mod h1:Wx+eubdt52Vl0l7U6gGjtP6VGrA5jqLeqWNDckGXL8I=
+github.com/sunshineplan/utils v0.1.45 h1:HGRgIhIttxkDsOP6Z4+UH2D7nBUG5gqFdKGQ6WvDmTs=
+github.com/sunshineplan/utils v0.1.45/go.mod h1:Wx+eubdt52Vl0l7U6gGjtP6VGrA5jqLeqWNDckGXL8I=
 golang.org/x/crypto v0.11.0 h1:6Ewdq3tDic1mg5xRO4milcWCfMVQhI4NkqWWvqejpuA=
 golang.org/x/crypto v0.11.0/go.mod h1:xgJhtzW8F9jGdVFWZESrid1U1bjeNy4zgy5cRr/CIio=
 golang.org/x/net v0.12.0 h1:cfawfvKITfUsFCeJIHJrbSxpeu/E81khclypR0GVT50=
