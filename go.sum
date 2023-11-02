@@ -20,8 +20,8 @@ github.com/sunshineplan/cipher v1.0.5 h1:opCKCTVjkdcoIJSCi2yoI0ndmwiyDbcm+5Mpyav
 github.com/sunshineplan/cipher v1.0.5/go.mod h1:JMP+4CCZT1D7qjZyuiyTe8ZPYaaBMxU9MWrCBKC/QhQ=
 github.com/sunshineplan/service v1.0.18 h1:gWvADCwp27exc51oVxDLvmQyYEAKOH8/2VlAGkjy8hU=
 github.com/sunshineplan/service v1.0.18/go.mod h1:PMOKLXk5Y+G07sUoXMfPq0cYk9MgkTc9pGn0f4Cigo4=
-github.com/sunshineplan/utils v0.1.52 h1:3EC8/KiEu0818SoRWXt2U3uShC0jUynjj6soMOb8DWE=
-github.com/sunshineplan/utils v0.1.52/go.mod h1:7zhDUGgKo2FMFzs7j6IL7B/lh3BRuE7rb7R7IgGOAfc=
+github.com/sunshineplan/utils v0.1.54 h1:7F/R4CwmwnrHyVlpCBMbiB2bh2YIXYygCfCIVuHSHwk=
+github.com/sunshineplan/utils v0.1.54/go.mod h1:7zhDUGgKo2FMFzs7j6IL7B/lh3BRuE7rb7R7IgGOAfc=
 golang.org/x/crypto v0.14.0 h1:wBqGXzWJW6m1XrIKlAH0Hs1JJ7+9KBwnIO8v66Q9cHc=
 golang.org/x/crypto v0.14.0/go.mod h1:MVFd36DqK4CsrnJYDkBA3VC4m2GkXAM0PvzMCn4JQf4=
 golang.org/x/net v0.17.0 h1:pVaXccu2ozPjCXewfr1S7xza/zcXTity9cCdXQYSjIM=
