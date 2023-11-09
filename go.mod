@@ -8,13 +8,13 @@ require (
 	github.com/sunshineplan/cipher v1.0.5
 	github.com/sunshineplan/service v1.0.19
 	github.com/sunshineplan/utils v0.1.55
-	golang.org/x/net v0.17.0
+	golang.org/x/net v0.18.0
 )
 
 require (
 	github.com/pschlump/AesCCM v0.0.0-20160925022350-c5df73b5834e // indirect
 	github.com/pschlump/MiscLib v1.0.3 // indirect
 	github.com/pschlump/json v1.12.0 // indirect
-	golang.org/x/crypto v0.14.0 // indirect
-	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/crypto v0.15.0 // indirect
+	golang.org/x/sys v0.14.0 // indirect
 )
