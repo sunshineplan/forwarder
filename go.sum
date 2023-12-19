@@ -16,8 +16,8 @@ github.com/pschlump/godebug v1.0.4 h1:X37zf4qXgsQhT4mceDet768mAimjxFDpsis7zEl8A8
 github.com/pschlump/godebug v1.0.4/go.mod h1:0g877qgD7yUdH5NUqp6hg/QTvR0LLIBGpuk7FeUlmWE=
 github.com/pschlump/json v1.12.0 h1:PjkeVEgEUg+vkHC8CfeXIG4fChev3a7gjl9wYrTnPIE=
 github.com/pschlump/json v1.12.0/go.mod h1:MyeKNxcsYS/AaCqIp6DgPdaE/4NVH49OJVCnQsRoevI=
-github.com/sunshineplan/cipher v1.0.5 h1:opCKCTVjkdcoIJSCi2yoI0ndmwiyDbcm+5MpyavmnJ0=
-github.com/sunshineplan/cipher v1.0.5/go.mod h1:JMP+4CCZT1D7qjZyuiyTe8ZPYaaBMxU9MWrCBKC/QhQ=
+github.com/sunshineplan/cipher v1.0.7 h1:uC2BwJWO8wDHZu/yUsrMVlhjL400rIco542GCywOw04=
+github.com/sunshineplan/cipher v1.0.7/go.mod h1:7AXZEo7seaA5/Zd2id+1pi4yNHQ2eAmIN5YNjmrGelQ=
 github.com/sunshineplan/service v1.0.19 h1:lxf98DVN6mLhUsdTUhV5jpge1B2IlbizzuC9HA2+lzA=
 github.com/sunshineplan/service v1.0.19/go.mod h1:3RFUNitk8eESkVmcmXKHBpDwsjVT1CAaAevaNzoALY8=
 github.com/sunshineplan/utils v0.1.60 h1:+hRzu+1dCd3PyKTHWPCE0Huq0/1woc5Qb4UnQRW3KtI=
