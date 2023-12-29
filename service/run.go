@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/sunshineplan/utils/mail"
@@ -21,21 +22,12 @@ func run() error {
 		log.Println("failed to init account list:", err)
 	}
 
-	accountWathcer, err := fsnotify.NewWatcher()
-	if err != nil {
-		log.Print(err)
-	} else {
-		defer accountWathcer.Close()
-
-		if err = accountWathcer.Add(*accounts); err != nil {
-			log.Println("failed to watching account list file:", err)
-		}
-	}
+	w, err := fsnotify.NewWatcher()
 	if err != nil {
 		return err
 	}
-	if len(accountList) == 0 {
-		return nil
+	if err = w.Add(filepath.Dir(*accounts)); err != nil {
+		return err
 	}
 
 	if err := loadCurrent(); err != nil {
@@ -55,39 +47,47 @@ func run() error {
 		c := make(chan struct{})
 
 		accountMutex.Lock()
-		l := len(accountList)
 		for _, i := range accountList {
 			go i.Run(s, c)
 		}
 		accountMutex.Unlock()
 
-		if accountWathcer != nil {
-			for event := range accountWathcer.Events {
-				log.Println("account list file operation:", event.Op)
-				switch {
-				case event.Has(fsnotify.Create), event.Has(fsnotify.Write):
-					log.Print("account list file changed")
-					close(c)
-					if err := loadAccountList(); err != nil {
-						log.Println("failed to load account list:", err)
-					}
-				case event.Has(fsnotify.Remove), event.Has(fsnotify.Rename):
-					log.Print("account list file removed")
-					close(c)
-					accountMutex.Lock()
-					accountList = nil
-					accountMutex.Unlock()
-				case event.Has(fsnotify.Chmod):
-					continue
-				default:
-					log.Print("account list file watcher closed")
+	Loop:
+		for {
+			select {
+			case err, ok := <-w.Errors:
+				if !ok {
+					log.Println(*accounts, "watcher closed")
+				} else {
+					log.Print(err)
 				}
-				break
+				break Loop
+			case event, ok := <-w.Events:
+				if !ok {
+					log.Println(*accounts, "watcher closed")
+					break Loop
+				}
+				if event.Name == *accounts {
+					log.Println(*accounts, "operation:", event.Op)
+					switch {
+					case event.Has(fsnotify.Create), event.Has(fsnotify.Write):
+						log.Print("account list file changed")
+						close(c)
+						if err := loadAccountList(); err != nil {
+							log.Println("failed to load account list:", err)
+						}
+					case event.Has(fsnotify.Remove), event.Has(fsnotify.Rename):
+						log.Print("account list file removed")
+						close(c)
+						accountMutex.Lock()
+						accountList = nil
+						accountMutex.Unlock()
+					case event.Has(fsnotify.Chmod):
+						continue
+					}
+					break Loop
+				}
 			}
-		}
-
-		if l == 0 {
-			return nil
 		}
 		<-c
 	}
