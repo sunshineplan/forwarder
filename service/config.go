@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -84,11 +83,7 @@ func loadCurrent() error {
 			log.Println("invalid value:", row)
 			continue
 		}
-		last, err := strconv.Atoi(strings.TrimSpace(fields[1]))
-		if err != nil {
-			log.Println("invalid value:", row)
-			continue
-		}
+		last := strings.TrimSpace(fields[1])
 		for _, i := range accountList {
 			if address := strings.TrimSpace(fields[0]); i.Address() == address {
 				i.Current = last
@@ -105,8 +100,8 @@ func saveCurrent() {
 
 	var rows []string
 	for _, i := range accountList {
-		if i.Current > 0 {
-			rows = append(rows, fmt.Sprintf("%s:%d", i.Address(), i.Current))
+		if i.Current != "" {
+			rows = append(rows, fmt.Sprintf("%s:%s", i.Address(), i.Current))
 		}
 	}
 	if len(rows) > 0 {

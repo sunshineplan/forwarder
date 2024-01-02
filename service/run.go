@@ -34,10 +34,10 @@ func run() error {
 		log.Print(err)
 	}
 
-	s := make(chan int)
+	s := make(chan string)
 	go func() {
 		for current := range s {
-			if current != 0 {
+			if current != "" {
 				saveCurrent()
 			}
 		}
@@ -104,10 +104,10 @@ func test() error {
 			if res, err := account.Start(true); err != nil {
 				log.Printf("[%d] %s: %s", i+1, address, err)
 				errCount++
-			} else if res.Last == 0 {
+			} else if res.Last == "" {
 				log.Printf("[%d] %s has no mails on the server", i+1, address)
 			} else {
-				log.Printf("[%d] %s last UID is %d", i+1, address, res.Last)
+				log.Printf("[%d] %s last UID is %s", i+1, address, res.Last)
 			}
 		}
 	}

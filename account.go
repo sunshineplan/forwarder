@@ -22,7 +22,9 @@ type Account struct {
 	Username string
 	Password string
 
-	Current int
+	Auth func(client *pop3.Client, domain, username, password string) error
+
+	Current string
 	Running bool
 
 	Sender *mail.Dialer
@@ -57,7 +59,12 @@ func (a Account) client() (*pop3.Client, error) {
 		return nil, err
 	}
 
-	if err := ntlmAuth(client, a.domain(), a.Username, a.Password); err != nil {
+	if a.Auth == nil {
+		err = USERPASS(client, "", a.Username, a.Password)
+	} else {
+		err = a.Auth(client, a.domain(), a.Username, a.Password)
+	}
+	if err != nil {
 		return nil, err
 	}
 
@@ -79,10 +86,15 @@ func (a *Account) Start(dryRun bool) (res Result, err error) {
 		}
 	}()
 
-	return (&forwarder{a}).run(a, dryRun)
+	client, err := a.client()
+	if err != nil {
+		return
+	}
+
+	return (&forwarder{a, client}).run(dryRun)
 }
 
-func (a *Account) Run(success chan<- int, cancel <-chan struct{}) {
+func (a *Account) Run(success chan<- string, cancel <-chan struct{}) {
 	if _, err := strconv.Atoi(a.Refresh); err == nil {
 		a.Refresh += "s"
 	}
@@ -112,7 +124,7 @@ func (a *Account) Run(success chan<- int, cancel <-chan struct{}) {
 			} else {
 				if res.Success+res.Failure > 0 {
 					log.Printf("%s - success: %d, failure: %d", a.Address(), res.Success, res.Failure)
-					if res.Last != 0 {
+					if res.Last != "" {
 						a.Current = res.Last
 					}
 					if success != nil {

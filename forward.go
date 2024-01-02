@@ -5,13 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strconv"
-	"sync"
-	"sync/atomic"
 
 	"github.com/sunshineplan/utils/mail"
 	"github.com/sunshineplan/utils/pop3"
-	"github.com/sunshineplan/utils/workers"
 )
 
 var (
@@ -21,6 +17,7 @@ var (
 
 type forwarder struct {
 	*Account
+	*pop3.Client
 }
 
 func (f *forwarder) forward(sender *mail.Dialer, id int, to []string, delete bool) error {
@@ -28,13 +25,7 @@ func (f *forwarder) forward(sender *mail.Dialer, id int, to []string, delete boo
 		return errEmptyDialer
 	}
 
-	client, err := f.client()
-	if err != nil {
-		return err
-	}
-	defer client.Quit()
-
-	s, err := client.Retr(id)
+	s, err := f.Retr(id)
 	if err != nil {
 		return err
 	}
@@ -47,20 +38,21 @@ func (f *forwarder) forward(sender *mail.Dialer, id int, to []string, delete boo
 	}
 
 	if delete {
-		return client.Dele(id)
+		return f.Dele(id)
 	} else {
 		return nil
 	}
 }
 
 type Result struct {
-	Last    int
-	Success int64
-	Failure int64
+	Last    string
+	Success int
+	Failure int
 }
 
-func (f *forwarder) run(account *Account, dryRun bool) (res Result, err error) {
+func (f *forwarder) run(dryRun bool) (res Result, err error) {
 	defer func() {
+		f.Quit()
 		if r := recover(); r != nil {
 			switch x := r.(type) {
 			case string:
@@ -73,66 +65,58 @@ func (f *forwarder) run(account *Account, dryRun bool) (res Result, err error) {
 		}
 	}()
 
-	var client *pop3.Client
-	client, err = f.client()
+	count, _, err := f.Stat()
 	if err != nil {
 		return
 	}
-	msgs, err := client.Uidl(0)
+	if count == 0 {
+		return
+	}
+	last, err := f.Uidl(count)
 	if err != nil {
 		return
 	}
-	client.Quit()
-
-	ctx, cancel := context.WithCancelCause(context.Background())
-	defer cancel(nil)
-
-	var mu sync.Mutex
-	var index int
-	var success, failure atomic.Int64
-	current := account.Current
-	workers.Slice(msgs, func(i int, msg pop3.MessageID) {
-		if ctx.Err() != nil {
+	if dryRun {
+		res.Last = last[0].UID
+		return
+	}
+	var start int
+	m := make(map[int]string)
+	if f.Keep {
+		if f.Current == last[0].UID {
 			return
 		}
-
-		n, err := strconv.Atoi(msg.UID)
-		if err != nil {
-			cancel(err)
-			return
-		}
-
-		if current > 0 && current >= n {
-			return
-		}
-
-		if dryRun {
-			success.Add(1)
-			mu.Lock()
-			if i >= index {
-				index = i
-				account.Current = n
+		for i := count; i > 0; i-- {
+			var id []pop3.MessageID
+			id, err = f.Uidl(i)
+			if err != nil {
+				return
 			}
-			mu.Unlock()
+			m[i] = id[0].UID
+			if id[0].UID == f.Current {
+				break
+			}
+			start = i
+		}
+		if start == 0 {
+			return
+		}
+	} else {
+		start = 1
+	}
+
+	var success, failure int
+	for i := start; i <= count; i++ {
+		if err := f.forward(f.Sender, i, f.To.List(), !f.Keep); err != nil {
+			failure++
+			log.Print(err)
 		} else {
-			if forwardErr := f.forward(account.Sender, msg.ID, account.To.List(), !account.Keep); forwardErr != nil {
-				failure.Add(1)
-				log.Print(forwardErr)
-			} else {
-				mu.Lock()
-				success.Add(1)
-				if account.Keep && i >= index {
-					index = i
-					account.Current = n
-				}
-				mu.Unlock()
+			success++
+			if f.Keep {
+				f.Current = m[i]
 			}
 		}
-	})
-	if err = context.Cause(ctx); err != nil {
-		return
 	}
-	res = Result{account.Current, success.Load(), failure.Load()}
-
+	res = Result{f.Current, success, failure}
 	return
 }

@@ -7,7 +7,15 @@ import (
 	"github.com/sunshineplan/utils/pop3"
 )
 
-func ntlmAuth(client *pop3.Client, domain, username, password string) (err error) {
+func USERPASS(client *pop3.Client, _, username, password string) (err error) {
+	if _, err = client.Cmd("USER %s", false, username); err != nil {
+		return
+	}
+	_, err = client.Cmd("PASS %s", false, password)
+	return
+}
+
+func AuthNTLM(client *pop3.Client, domain, username, password string) (err error) {
 	if _, err = client.Cmd("AUTH NTLM", false); err != nil {
 		return
 	}
