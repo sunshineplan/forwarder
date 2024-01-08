@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -38,13 +37,15 @@ var (
 	logPath  = flag.String("log", "", "Path to log file")
 	interval = flag.Duration("interval", forwarder.DefaultInterval, "Default refresh interval")
 	key      = flag.String("key", "forwarder", "Encrypt key")
+	admin    mail.Receipts
 )
 
 func main() {
 	self, err := os.Executable()
 	if err != nil {
-		log.Fatalln("Failed to get self path:", err)
+		svc.Fatalln("Failed to get self path:", err)
 	}
+	flag.TextVar(&admin, "admin", mail.Receipts(nil), "Admin mail")
 	flag.StringVar(&defaultSender.Password, "password", "", "Mail account password")
 	flag.StringVar(&svc.Options.UpdateURL, "update", svc.Options.UpdateURL, "Update URL")
 	flags.SetConfigFile(filepath.Join(filepath.Dir(self), "config.ini"))
@@ -53,7 +54,7 @@ func main() {
 	if defaultSender.Password != "" {
 		password, err := cipher.DecryptText(*key, defaultSender.Password)
 		if err != nil {
-			log.Println("Failed to decrypt mail account password:", err)
+			svc.Println("Failed to decrypt mail account password:", err)
 		} else {
 			defaultSender.Password = password
 		}

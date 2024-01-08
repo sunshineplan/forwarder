@@ -17,5 +17,6 @@
 *.ini
 *.log
 
+service
 accounts.json
 current.txt

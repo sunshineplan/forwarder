@@ -2,24 +2,18 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"os"
 	"path/filepath"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/sunshineplan/utils/log"
 	"github.com/sunshineplan/utils/mail"
 )
 
 func run() error {
-	f, err := os.OpenFile(*logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Println("Failed to open log file:", err)
-	} else {
-		log.SetOutput(f)
-	}
+	svc.Logger = log.New(*logPath, "", log.LstdFlags)
 
 	if err := loadAccountList(); err != nil {
-		log.Println("failed to init account list:", err)
+		svc.Println("failed to init account list:", err)
 	}
 
 	w, err := fsnotify.NewWatcher()
@@ -31,14 +25,21 @@ func run() error {
 	}
 
 	if err := loadCurrent(); err != nil {
-		log.Print(err)
+		svc.Print(err)
 	}
 
-	s := make(chan string)
+	s, e := make(chan string), make(chan error)
 	go func() {
-		for current := range s {
-			if current != "" {
-				saveCurrent()
+		for {
+			select {
+			case current := <-s:
+				if current != "" {
+					go saveCurrent()
+				}
+			case err := <-e:
+				if err != nil {
+					go alert(err)
+				}
 			}
 		}
 	}()
@@ -48,7 +49,7 @@ func run() error {
 
 		accountMutex.Lock()
 		for _, i := range accountList {
-			go i.Run(s, c)
+			go i.Run(s, e, c)
 		}
 		accountMutex.Unlock()
 
@@ -57,27 +58,27 @@ func run() error {
 			select {
 			case err, ok := <-w.Errors:
 				if !ok {
-					log.Println(*accounts, "watcher closed")
+					svc.Println(*accounts, "watcher closed")
 				} else {
-					log.Print(err)
+					svc.Print(err)
 				}
 				break Loop
 			case event, ok := <-w.Events:
 				if !ok {
-					log.Println(*accounts, "watcher closed")
+					svc.Println(*accounts, "watcher closed")
 					break Loop
 				}
 				if event.Name == *accounts {
-					log.Println(*accounts, "operation:", event.Op)
+					svc.Println(*accounts, "operation:", event.Op)
 					switch {
 					case event.Has(fsnotify.Create), event.Has(fsnotify.Write):
-						log.Print("account list file changed")
+						svc.Print("account list file changed")
 						close(c)
 						if err := loadAccountList(); err != nil {
-							log.Println("failed to load account list:", err)
+							svc.Println("failed to load account list:", err)
 						}
 					case event.Has(fsnotify.Remove), event.Has(fsnotify.Rename):
-						log.Print("account list file removed")
+						svc.Print("account list file removed")
 						close(c)
 						accountMutex.Lock()
 						accountList = nil
@@ -93,21 +94,33 @@ func run() error {
 	}
 }
 
+func alert(err error) {
+	if admin != nil {
+		if err := defaultSender.Send(&mail.Message{
+			To:      admin,
+			Subject: "[Forwarder]Failed Alert",
+			Body:    err.Error(),
+		}); err != nil {
+			svc.Print(err)
+		}
+	}
+}
+
 func test() error {
 	var errCount int
 	if err := loadAccountList(); err != nil {
-		log.Println("failed to load account:", err)
+		svc.Println("failed to load account:", err)
 		errCount++
 	} else {
 		for i, account := range accountList {
 			address := account.Address()
 			if res, err := account.Start(true); err != nil {
-				log.Printf("[%d] %s: %s", i+1, address, err)
+				svc.Printf("[%d] %s: %s", i+1, address, err)
 				errCount++
 			} else if res.Last == "" {
-				log.Printf("[%d] %s has no mails on the server", i+1, address)
+				svc.Printf("[%d] %s has no mails on the server", i+1, address)
 			} else {
-				log.Printf("[%d] %s last UID is %s", i+1, address, res.Last)
+				svc.Printf("[%d] %s last UID is %s", i+1, address, res.Last)
 			}
 		}
 	}
@@ -118,7 +131,7 @@ func test() error {
 			Subject: "Test Mail",
 			Body:    "Test",
 		}); err != nil {
-			log.Println("failed to send test mail:", err)
+			svc.Println("failed to send test mail:", err)
 			errCount++
 		}
 	}

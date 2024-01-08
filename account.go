@@ -79,6 +79,13 @@ func (a Account) Address() string {
 	}
 }
 
+func (a Account) Error(err error) error {
+	if err == nil {
+		return nil
+	}
+	return fmt.Errorf("%s: %s", a.Address(), err)
+}
+
 func (a *Account) Start(dryRun bool) (res Result, err error) {
 	defer func() {
 		if e := recover(); e != nil {
@@ -94,7 +101,7 @@ func (a *Account) Start(dryRun bool) (res Result, err error) {
 	return (&forwarder{a, client}).run(dryRun)
 }
 
-func (a *Account) Run(success chan<- string, cancel <-chan struct{}) {
+func (a *Account) Run(success chan<- string, failed chan<- error, cancel <-chan struct{}) {
 	if _, err := strconv.Atoi(a.Refresh); err == nil {
 		a.Refresh += "s"
 	}
@@ -121,6 +128,9 @@ func (a *Account) Run(success chan<- string, cancel <-chan struct{}) {
 
 			if res, err := a.Start(false); err != nil {
 				log.Printf("%s - [ERROR]%s", a.Address(), err)
+				if failed != nil {
+					failed <- a.Error(err)
+				}
 			} else {
 				if res.Success+res.Failure > 0 {
 					log.Printf("%s - success: %d, failure: %d", a.Address(), res.Success, res.Failure)

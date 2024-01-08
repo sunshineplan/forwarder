@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"sync"
@@ -44,7 +43,7 @@ func loadAccountList() error {
 
 		password, err := cipher.DecryptText(*key, i.Password)
 		if err != nil {
-			log.Print(err)
+			svc.Print(err)
 		} else {
 			i.Password = password
 		}
@@ -56,7 +55,7 @@ func loadAccountList() error {
 
 			password, err := cipher.DecryptText(*key, i.Sender.Password)
 			if err != nil {
-				log.Printf("%s - [WARN]Failed to decrypt sender password: %s", i.Address(), err)
+				svc.Printf("%s - [WARN]Failed to decrypt sender password: %s", i.Address(), err)
 			} else {
 				i.Sender.Password = password
 			}
@@ -64,7 +63,7 @@ func loadAccountList() error {
 			i.Sender = defaultSender
 		}
 	}
-	log.Printf("loaded %d account(s)", len(accountList))
+	svc.Printf("loaded %d account(s)", len(accountList))
 
 	return nil
 }
@@ -80,7 +79,7 @@ func loadCurrent() error {
 		if l := len(fields); l == 0 {
 			continue
 		} else if l != 2 {
-			log.Println("invalid value:", row)
+			svc.Println("invalid value:", row)
 			continue
 		}
 		last := strings.TrimSpace(fields[1])
@@ -107,7 +106,7 @@ func saveCurrent() {
 	if len(rows) > 0 {
 		err := txt.ExportFile(rows, *current)
 		if err != nil {
-			log.Print(err)
+			svc.Print(err)
 		}
 	}
 }

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -52,6 +51,6 @@ func parse() {
 		return
 	}, 5, 60)
 	if err != nil {
-		log.Fatal("access denied")
+		svc.Fatal("access denied")
 	}
 }
