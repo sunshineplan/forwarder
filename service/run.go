@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	logpkg "log"
 	"path/filepath"
 
 	"github.com/fsnotify/fsnotify"
@@ -11,6 +12,7 @@ import (
 
 func run() error {
 	svc.Logger = log.New(*logPath, "", log.LstdFlags)
+	logpkg.SetOutput(svc.Logger.Writer())
 
 	if err := loadAccountList(); err != nil {
 		svc.Println("failed to init account list:", err)
