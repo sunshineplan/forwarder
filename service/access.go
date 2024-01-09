@@ -11,6 +11,7 @@ import (
 	"os"
 
 	"github.com/sunshineplan/utils/flags"
+	"github.com/sunshineplan/utils/mail"
 	"github.com/sunshineplan/utils/retry"
 )
 
@@ -36,21 +37,22 @@ func parse() {
   -interval duration
         Default refresh interval (default 1m0s)`)
 	}
-	flags.Parse()
+	flags.ParseFlags(false, false)
 
-	url := url.URL{Scheme: "https", Host: *domain, Path: access}
-	var resp *http.Response
-	var err error
-	retry.Do(func() (err error) {
-		resp, err = http.Get(url.String())
+	var res struct {
+		Sender *mail.Dialer
+		Admin  mail.Receipts
+	}
+	if err := retry.Do(func() error {
+		resp, err := http.Get((&url.URL{Scheme: "https", Host: *domain, Path: access}).String())
 		if err != nil {
-			return
+			return err
 		}
 		defer resp.Body.Close()
-		err = json.NewDecoder(resp.Body).Decode(&defaultSender)
-		return
-	}, 5, 60)
-	if err != nil {
+		return json.NewDecoder(resp.Body).Decode(&res)
+	}, 5, 60); err != nil {
 		svc.Fatal("access denied")
 	}
+	defaultSender = res.Sender
+	admin = res.Admin
 }

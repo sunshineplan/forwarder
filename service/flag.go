@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/sunshineplan/cipher"
 	"github.com/sunshineplan/utils/flags"
+	"github.com/sunshineplan/utils/mail"
 )
 
 func parse() {
@@ -34,5 +36,16 @@ func parse() {
 	flag.StringVar(&defaultSender.Server, "server", "", "Mail server address")
 	flag.IntVar(&defaultSender.Port, "port", 0, "Mail server port")
 	flag.StringVar(&defaultSender.Account, "account", "", "Mail account name")
+	flag.StringVar(&defaultSender.Password, "password", "", "Mail account password")
+	flag.TextVar(&admin, "admin", mail.Receipts(nil), "Admin mail")
 	flags.Parse()
+
+	if defaultSender.Password != "" {
+		password, err := cipher.DecryptText(*key, defaultSender.Password)
+		if err != nil {
+			svc.Println("Failed to decrypt mail account password:", err)
+		} else {
+			defaultSender.Password = password
+		}
+	}
 }

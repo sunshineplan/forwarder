@@ -7,7 +7,6 @@ import (
 
 	"github.com/sunshineplan/forwarder"
 
-	"github.com/sunshineplan/cipher"
 	"github.com/sunshineplan/service"
 	"github.com/sunshineplan/utils/flags"
 	"github.com/sunshineplan/utils/mail"
@@ -45,24 +44,13 @@ func main() {
 	if err != nil {
 		svc.Fatalln("Failed to get self path:", err)
 	}
-	flag.TextVar(&admin, "admin", mail.Receipts(nil), "Admin mail")
-	flag.StringVar(&defaultSender.Password, "password", "", "Mail account password")
 	flag.StringVar(&svc.Options.UpdateURL, "update", svc.Options.UpdateURL, "Update URL")
 	flags.SetConfigFile(filepath.Join(filepath.Dir(self), "config.ini"))
 	parse()
 
-	if defaultSender.Password != "" {
-		password, err := cipher.DecryptText(*key, defaultSender.Password)
-		if err != nil {
-			svc.Println("Failed to decrypt mail account password:", err)
-		} else {
-			defaultSender.Password = password
-		}
-	}
 	if *defaultSender != emptyDialer && defaultSender.Port == 0 {
 		defaultSender.Port = 587
 	}
-
 	if *accounts == "" {
 		*accounts = filepath.Join(filepath.Dir(self), "accounts.json")
 	}
