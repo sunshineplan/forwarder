@@ -8,10 +8,10 @@ require (
 	github.com/sunshineplan/cipher v1.0.8
 	github.com/sunshineplan/service v1.0.21
 	github.com/sunshineplan/utils v0.1.74
-	golang.org/x/net v0.35.0
+	golang.org/x/net v0.36.0
 )
 
 require (
-	golang.org/x/crypto v0.33.0 // indirect
+	golang.org/x/crypto v0.35.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 )
