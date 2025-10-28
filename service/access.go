@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/sunshineplan/utils/flags"
 	"github.com/sunshineplan/utils/mail"
@@ -50,7 +51,7 @@ func parse() {
 		}
 		defer resp.Body.Close()
 		return json.NewDecoder(resp.Body).Decode(&res)
-	}, 5, 60); err != nil {
+	}, 5, 60*time.Second); err != nil {
 		svc.Fatal("access denied")
 	}
 	defaultSender = res.Sender
