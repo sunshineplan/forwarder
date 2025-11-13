@@ -1,5 +1,5 @@
-github.com/Azure/go-ntlmssp v0.0.1 h1:NqbqUHiVYjwBDsxM1KrllG7rnoHpcp40EWrpffsgcUc=
-github.com/Azure/go-ntlmssp v0.0.1/go.mod h1:P/Wrai1IsNvkfWRRN0jvRobt7ZJdz4sHQ3dOjiEGDt0=
+github.com/Azure/go-ntlmssp v0.1.0 h1:DjFo6YtWzNqNvQdrwEyr/e4nhU3vRiwenz5QX7sFz+A=
+github.com/Azure/go-ntlmssp v0.1.0/go.mod h1:NYqdhxd/8aAct/s4qSYZEerdPuH1liG2/X9DiVTbhpk=
 github.com/fsnotify/fsnotify v1.9.0 h1:2Ml+OJNzbYCTzsxtv8vKSFD9PbJjmhYF14k/jKC7S9k=
 github.com/fsnotify/fsnotify v1.9.0/go.mod h1:8jBTzvmWwFyi3Pb8djgCCO5IBqzKJ/Jwo8TRcHyHii0=
 github.com/sunshineplan/cipher v1.0.8 h1:ej4l3fOANug9kwvMmVXsNaAbZMRtS+xp1Wi4cVNRypI=
