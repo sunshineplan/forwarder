@@ -1,14 +1,19 @@
 module github.com/sunshineplan/forwarder
 
-go 1.24.0
+go 1.25
 
 require (
 	github.com/Azure/go-ntlmssp v0.1.0
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/sunshineplan/cipher v1.0.8
-	github.com/sunshineplan/service v1.0.24
-	github.com/sunshineplan/utils v0.1.82
+	github.com/sunshineplan/service v1.0.25
+	github.com/sunshineplan/utils v0.1.83
 	golang.org/x/net v0.47.0
 )
 
-require golang.org/x/sys v0.38.0 // indirect
+require (
+	github.com/clipperhouse/uax29/v2 v2.2.0 // indirect
+	github.com/mattn/go-runewidth v0.0.19 // indirect
+	github.com/sunshineplan/progressbar v1.0.1 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+)
