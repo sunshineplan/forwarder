@@ -6,7 +6,7 @@ require (
 	github.com/Azure/go-ntlmssp v0.1.0
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/sunshineplan/cipher v1.0.8
-	github.com/sunshineplan/service v1.0.25
+	github.com/sunshineplan/service v1.0.26
 	github.com/sunshineplan/utils v0.1.83
 	golang.org/x/net v0.48.0
 )
