@@ -38,6 +38,7 @@ func parse() {
 	flag.StringVar(&defaultSender.Account, "account", "", "Mail account name")
 	flag.StringVar(&defaultSender.Password, "password", "", "Mail account password")
 	flag.TextVar(&admin, "admin", mail.Receipts(nil), "Admin mail")
+	flag.StringVar(&gotify, "gotify", "", "Gotify URL")
 	flags.Parse()
 
 	if defaultSender.Password != "" {

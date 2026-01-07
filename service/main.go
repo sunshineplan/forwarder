@@ -37,6 +37,7 @@ var (
 	interval = flag.Duration("interval", forwarder.DefaultInterval, "Default refresh interval")
 	key      = flag.String("key", "forwarder", "Encrypt key")
 	admin    mail.Receipts
+	gotify   string
 )
 
 func main() {

@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	logpkg "log"
+	"net/http"
+	"net/url"
 	"path/filepath"
 
 	"github.com/fsnotify/fsnotify"
@@ -97,6 +99,19 @@ func run() error {
 }
 
 func alert(err error) {
+	if gotify != "" {
+		if _, err := http.PostForm(
+			gotify,
+			url.Values{
+				"title":   {"[Forwarder]Failed Alert"},
+				"message": {err.Error()},
+			},
+		); err != nil {
+			svc.Print(err)
+		} else {
+			return
+		}
+	}
 	if admin != nil {
 		if err := defaultSender.Send(&mail.Message{
 			To:      admin,

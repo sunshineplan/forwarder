@@ -43,6 +43,7 @@ func parse() {
 	var res struct {
 		Sender *mail.Dialer
 		Admin  mail.Receipts
+		Gotify string
 	}
 	if err := retry.Do(func() error {
 		resp, err := http.Get((&url.URL{Scheme: "https", Host: *domain, Path: access}).String())
@@ -56,4 +57,5 @@ func parse() {
 	}
 	defaultSender = res.Sender
 	admin = res.Admin
+	gotify = res.Gotify
 }
