@@ -38,7 +38,8 @@ func parse() {
   -interval duration
         Default refresh interval (default 1m0s)`)
 	}
-	flags.ParseFlags(false, false)
+	flags.SilentMissingConfig = true
+	flags.Parse()
 
 	var res struct {
 		Sender *mail.Dialer
