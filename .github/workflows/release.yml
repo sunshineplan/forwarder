@@ -21,6 +21,7 @@ jobs:
         run: |
           cd service
           go build -ldflags "-s -w" -o ../forwarder
+          #go build -tag access -ldflags "-s -w" -o ../forwarder
 
       - name: Upload Release Asset
         uses: shogo82148/actions-upload-release-asset@v1
